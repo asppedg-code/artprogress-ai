@@ -123,7 +123,8 @@ sequenceDiagram
 - Bố cục trang A4 chuẩn xác: Tiêu đề trường, thông tin học sinh, minh chứng ảnh Trước - Sau, bảng điểm Rubric, nhận xét của giáo viên và tự đánh giá của học sinh.
 
 ### 4.6. Cơ chế kiểm soát phiên bản tự động (v1.0.0)
-- Lưu mã phiên bản hiện tại `1.0.0` vào Local Storage (`artprogress_app_version`).
+- Định nghĩa tập trung tại duy nhất một nơi: [`src/config/version.ts`](file:///d:/webgd/src/config/version.ts).
+- Lưu mã phiên bản hiện tại vào Local Storage (`artprogress_app_version`).
 - Tự động phát hiện khi người dùng mở trang từ bản cache cũ, thực hiện dọn sạch bộ nhớ cache và reload sạch sẽ để cập nhật bundle mới nhất.
 
 ---

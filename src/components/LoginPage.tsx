@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { ClassRoom, Student } from "@/types/artprogress";
 import { ArtistPaintingAnimation } from "@/components/ArtistPaintingAnimation";
+import { APP_VERSION } from "@/config/version";
 
 interface LoginPageProps {
   classes: ClassRoom[];
@@ -487,7 +488,7 @@ export function LoginPage({
               <span>Hệ thống đánh giá tiến bộ &amp; hồ sơ sáng tạo môn Mĩ thuật</span>
               <span>&bull;</span>
               <span className="font-mono text-[9px] bg-[#EDE4D6] text-[#7A6E5F] px-1.5 py-0.5 rounded-full font-semibold">
-                v1.0.0
+                v{APP_VERSION}
               </span>
             </div>
           </div>

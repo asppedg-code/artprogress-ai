@@ -2,6 +2,7 @@
 
 import React, { useEffect } from "react";
 import { Palette, Sparkles } from "lucide-react";
+import { APP_VERSION } from "@/config/version";
 
 export interface BrushStrokeTransitionProps {
   onSwap: () => void;
@@ -275,7 +276,7 @@ export function BrushStrokeTransition({
                 ArtProgress
               </span>
               <span className="text-[10px] bg-white/20 text-[#FFF2E0] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider border border-white/20">
-                AI &bull; v1.0.0
+                AI &bull; v{APP_VERSION}
               </span>
             </div>
 

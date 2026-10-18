@@ -51,9 +51,8 @@ import {
   deleteStudentFromFirestore,
   uploadArtworkImageToStorage,
 } from "@/lib/firebase";
+import { APP_VERSION } from "@/config/version";
 
-// Mã phiên bản hiện tại của ứng dụng ArtProgress
-export const APP_VERSION = "1.0.0";
 const STORAGE_VERSION_TAG = `artprogress_storage_v${APP_VERSION}_clean`;
 
 export default function DashboardPage() {
