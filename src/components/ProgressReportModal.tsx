@@ -4,6 +4,7 @@ import React from "react";
 import Image from "next/image";
 import { Printer, X, Award, CheckCircle2, Sliders, User, BookOpen } from "lucide-react";
 import { Artwork, Topic } from "@/types/artprogress";
+import { APP_VERSION } from "@/config/version";
 
 interface ProgressReportModalProps {
   artwork: Artwork | null;
@@ -222,7 +223,7 @@ export function ProgressReportModal({
 
           {/* CHÂN TRANG BÁO CÁO */}
           <div className="pt-6 border-t border-stone-200 text-center text-[10px] text-stone-400">
-            Hệ thống ArtProgress AI • Ngày hội Giáo viên sáng tạo với Công nghệ số & AI 2026
+            Hệ thống ArtProgress AI v{APP_VERSION} • Ngày hội Giáo viên sáng tạo với Công nghệ số & AI 2026
           </div>
         </div>
       </div>

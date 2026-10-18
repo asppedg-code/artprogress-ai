@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import * as THREE from "three";
 import { Artwork } from "@/types/artprogress";
+import { APP_VERSION } from "@/config/version";
 import {
   Maximize2,
   Minimize2,
@@ -1252,6 +1253,16 @@ export function Gallery3DView({
     }
   };
 
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(Boolean(document.fullscreenElement));
+    };
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    return () => {
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+    };
+  }, []);
+
   return (
     <div
       ref={containerRef}
@@ -1279,8 +1290,18 @@ export function Gallery3DView({
       </div>
 
       {/* =====================================================================
-          HUD TRÊN CÙNG: THANH CÔNG CỤ
+          HUD TRÊN CÙNG: HUY HIỆU PHIÊN BẢN (TRÁI) & THANH CÔNG CỤ (PHẢI)
           ===================================================================== */}
+      <div className="absolute top-4 left-4 pointer-events-none z-20 flex items-center gap-2">
+        <div className="bg-stone-900/85 backdrop-blur-md px-3 py-1.5 rounded-xl border border-stone-700/60 shadow-lg flex items-center gap-2">
+          <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+          <span className="font-serif font-bold text-xs text-white">Triển Lãm 3D</span>
+          <span className="text-[9.5px] font-mono font-semibold bg-stone-800 text-amber-300 px-1.5 py-0.2 rounded border border-stone-700">
+            v{APP_VERSION}
+          </span>
+        </div>
+      </div>
+
       <div className="absolute top-4 right-4 flex items-center justify-end pointer-events-none z-20">
 
         <div className="flex items-center gap-2 pointer-events-auto">
@@ -1305,12 +1326,12 @@ export function Gallery3DView({
             <Info className="w-4 h-4" />
           </button>
 
-          {/* Toàn màn hình */}
+          {/* Bật/Tắt Toàn Màn Hình */}
           <button
             onClick={toggleFullscreen}
             type="button"
             className="w-9 h-9 rounded-xl bg-stone-900/85 hover:bg-stone-800 text-stone-300 hover:text-white border border-stone-700/60 flex items-center justify-center transition-all cursor-pointer"
-            title={isFullscreen ? "Thu nhỏ" : "Toàn màn hình"}
+            title={isFullscreen ? "Thoát toàn màn hình" : "Xem toàn màn hình"}
           >
             {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
           </button>
@@ -1324,7 +1345,7 @@ export function Gallery3DView({
         <div className="absolute top-18 left-4 max-w-xs bg-stone-900/90 backdrop-blur-md p-3.5 rounded-2xl border border-stone-700/70 text-white shadow-2xl pointer-events-auto z-20 animate-in fade-in slide-in-from-top-2 duration-200">
           <div className="flex items-center justify-between pb-2 border-b border-stone-800">
             <span className="text-[11.5px] font-bold text-amber-400 flex items-center gap-1.5">
-              <Compass className="w-3.5 h-3.5" /> Cách tham quan phòng 3D
+              <Compass className="w-3.5 h-3.5" /> Cách tham quan phòng 3D (v{APP_VERSION})
             </span>
             <button
               onClick={() => setShowHelp(false)}

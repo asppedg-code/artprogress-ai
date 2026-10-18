@@ -1234,6 +1234,13 @@ export default function DashboardPage() {
                     <LogOut className="w-3.5 h-3.5" />
                   </button>
                 </div>
+
+                <div className="flex items-center justify-between px-1 text-[9px] text-stone-400 font-mono">
+                  <span>ArtProgress Studio</span>
+                  <span className="bg-[#FAF8F5] border border-[#EAE5DC] px-1.5 py-0.2 rounded font-semibold text-stone-500">
+                    v{APP_VERSION}
+                  </span>
+                </div>
               </div>
             </div>
           </aside>

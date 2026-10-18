@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Lora, Be_Vietnam_Pro } from "next/font/google";
+import { APP_VERSION } from "@/config/version";
 import "./globals.css";
 
 // Font Serif nghệ thuật cho tiêu đề (tránh rơi về Times New Roman)
@@ -18,8 +19,8 @@ const beVietnamPro = Be_Vietnam_Pro({
 });
 
 export const metadata: Metadata = {
-  title: "ArtProgress AI — Mĩ thuật THCS",
-  description: "Hồ sơ sáng tạo & Tiến bộ số môn Mĩ thuật",
+  title: `ArtProgress AI v${APP_VERSION} — Mĩ thuật THCS`,
+  description: `Hồ sơ sáng tạo & Tiến bộ số môn Mĩ thuật (v${APP_VERSION})`,
 };
 
 export default function RootLayout({

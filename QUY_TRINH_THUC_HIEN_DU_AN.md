@@ -1,10 +1,10 @@
 # 📑 BÁO CÁO QUY TRÌNH THỰC HIỆN DỰ ÁN TỪ ĐẦU ĐẾN CUỐI
-# ARTPROGRESS (v1.0.0) — HỆ THỐNG QUẢN LÝ HỒ SƠ & TRIỂN LÃM MĨ THUẬT 3D THCS
+# ARTPROGRESS — HỆ THỐNG QUẢN LÝ HỒ SƠ & TRIỂN LÃM MĨ THUẬT 3D THCS
 
 > **Người thực hiện**: Học sinh phụ trách dự án công nghệ mĩ thuật  
 > **Người hướng dẫn / Tiếp nhận**: Giáo viên Mĩ thuật THCS  
 > **Phạm vi áp dụng**: 4 Khối (6, 7, 8, 9) & 16 Lớp học THCS  
-> **Phiên bản phát hành**: v1.0.0  
+> **Kiểm soát phiên bản**: Đồng bộ tự động qua [`src/config/version.ts`](file:///d:/webgd/src/config/version.ts)  
 > **Năm học**: 2025 – 2026
 
 ---
@@ -86,7 +86,7 @@ sequenceDiagram
 | **Thiết kế giao diện** | **Tailwind CSS + Lucide Icons** | Giao diện hiện đại, tối giản, thanh lịch theo phong cách xưởng vẽ nghệ thuật |
 | **Chuyển động nghệ thuật** | **CSS GPU Compositor Keyframes** | Xử lý hoạt ảnh vệt cọ vẽ `#C4572F` mượt mà 60/120fps trên luồng phần cứng |
 | **Lưu trữ dữ liệu** | **Local Storage + Cloud Firestore** | Chế độ lưu trữ kép (*Graceful Fallback*): Hoạt động trơn tru cả khi mất mạng |
-| **Kiểm soát phiên bản cache**| **App Version Tag (v1.0.0)** | Tự động so sánh phiên bản, xóa sạch cache cũ và reload sạch khi có cập nhật |
+| **Kiểm soát phiên bản cache**| **App Version Tag (src/config/version.ts)** | Tự động so sánh phiên bản, xóa sạch cache cũ và reload sạch khi có cập nhật |
 
 ---
 
@@ -122,7 +122,7 @@ sequenceDiagram
 - Tự động ẩn thanh công cụ khi in (`print:hidden`).
 - Bố cục trang A4 chuẩn xác: Tiêu đề trường, thông tin học sinh, minh chứng ảnh Trước - Sau, bảng điểm Rubric, nhận xét của giáo viên và tự đánh giá của học sinh.
 
-### 4.6. Cơ chế kiểm soát phiên bản tự động (v1.0.0)
+### 4.6. Cơ chế kiểm soát phiên bản tự động (Single Source of Truth)
 - Định nghĩa tập trung tại duy nhất một nơi: [`src/config/version.ts`](file:///d:/webgd/src/config/version.ts).
 - Lưu mã phiên bản hiện tại vào Local Storage (`artprogress_app_version`).
 - Tự động phát hiện khi người dùng mở trang từ bản cache cũ, thực hiện dọn sạch bộ nhớ cache và reload sạch sẽ để cập nhật bundle mới nhất.

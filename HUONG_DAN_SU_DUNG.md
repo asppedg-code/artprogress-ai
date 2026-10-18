@@ -1,5 +1,5 @@
 # 🎨 ArtProgress — Cẩm Nang Hướng Dẫn Sử Dụng & Quy Trình Thực Hiện
-> **Hệ thống Quản lý Hồ sơ Mỹ thuật, Đánh giá Tiến bộ & Phòng Triển lãm 3D THCS (Phiên bản v1.0.0)**  
+> **Hệ thống Quản lý Hồ sơ Mỹ thuật, Đánh giá Tiến bộ & Phòng Triển lãm 3D THCS**  
 > *Dự án Chuyển đổi số Dạy & Học môn Mĩ thuật theo Chương trình GDPT 2018*
 
 ---
@@ -8,13 +8,13 @@
 
 Kính gửi **Thầy/Cô Giáo viên Mĩ thuật**,
 
-Em xây dựng dự án **ArtProgress (v1.0.0)** với mong muốn đồng hành cùng Thầy/Cô trong công tác giảng dạy, chấm bài và lưu giữ những khoảnh khắc sáng tạo nghệ thuật quý giá của các bạn học sinh. 
+Em xây dựng dự án **ArtProgress** với mong muốn đồng hành cùng Thầy/Cô trong công tác giảng dạy, chấm bài và lưu giữ những khoảnh khắc sáng tạo nghệ thuật quý giá của các bạn học sinh. 
 
 Phần mềm được thiết kế theo đúng tinh thần **"Đánh giá vì sự tiến bộ của người học" (Assessment for Learning)** trong Chương trình Giáo dục Phổ thông 2018:
 1. Mỗi học sinh đều có một hồ sơ mĩ thuật cá nhân (*Art Portfolio*), lưu trữ chặng đường từ nét vẽ phác thảo đầu tiên cho đến bức tranh hoàn thiện.
 2. Thầy/Cô có công cụ chấm điểm theo bảng tiêu chí (*Rubric*) 4 chuẩn năng lực rõ ràng, ghi lời phê động viên mang tính sư phạm.
 3. Các bức tranh tiêu biểu được đưa lên **Phòng Triển Lãm Ảo 3D** hiện đại với ánh sáng và khung tranh mỹ thuật, giúp học sinh thêm tự hào và say mê sáng tạo.
-4. **Cơ chế tự động dọn cache & cập nhật phiên bản**: Hệ thống luôn kiểm tra mã phiên bản (`v1.0.0`). Nếu phát hiện người dùng đang dùng phiên bản cũ do cache trình duyệt, hệ thống sẽ tự động dọn sạch bộ nhớ đệm và reload mới hoàn toàn.
+4. **Cơ chế tự động dọn cache & cập nhật phiên bản**: Hệ thống luôn kiểm tra mã phiên bản cấu hình tập trung tại `src/config/version.ts`. Nếu phát hiện người dùng đang dùng phiên bản cũ do cache trình duyệt, hệ thống sẽ tự động dọn sạch bộ nhớ đệm và reload mới hoàn toàn.
 
 Tài liệu này sẽ hướng dẫn Thầy/Cô và các bạn học sinh từng bước vận hành hệ thống một cách dễ dàng và hiệu quả nhất.
 
@@ -165,8 +165,8 @@ flowchart TD
   2. Kết nối tài khoản GitHub với [Vercel.com](https://vercel.com).
   3. Bấm **Deploy**. Sau 1 phút, trường sẽ có một đường link web riêng (ví dụ: `https://artprogress-thcs.vercel.app`) để toàn trường có thể mở trên điện thoại hay máy tính mọi lúc mọi nơi!
 
-### 3. Cơ chế kiểm soát phiên bản & Tự động dọn Cache (v1.0.0)
-- **Tự động đối chiếu phiên bản**: Hệ thống lưu mã phiên bản hiện tại `1.0.0` vào Local Storage (`artprogress_app_version`).
+### 3. Cơ chế kiểm soát phiên bản & Tự động dọn Cache (Cấu hình tại `src/config/version.ts`)
+- **Tự động đối chiếu phiên bản**: Hệ thống đọc mã phiên bản khai báo duy nhất tại `src/config/version.ts` và lưu vào Local Storage (`artprogress_app_version`).
 - **Tự động reload sạch**: Khi người dùng mở trang, nếu phát hiện phiên bản trong máy cũ hơn bản phát hành mới, hệ thống tự động xóa sạch cache cũ, dọn Cache Storage và reload trang để nạp bản mới nhất, tránh tình trạng lỗi giao diện do cache trình duyệt lưu trữ mã nguồn cũ.
 - **Lưu trữ cục bộ an toàn**: Tự động lưu trữ bài vẽ và danh sách lớp học offline, không sợ mất dữ liệu kể cả khi trường học mất mạng.
 
