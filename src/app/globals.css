@@ -1,0 +1,93 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --background: #FAF8F5;
+    --foreground: #1E1C1A;
+  }
+
+  body {
+    background-color: #FAF8F5;
+    color: #1E1C1A;
+    font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3, .font-serif {
+    font-family: var(--font-serif), Georgia, serif;
+  }
+}
+
+/* Thẻ tác phẩm có viền passe-partout tinh tế chuẩn studio */
+.artwork-frame {
+  background: #FFFFFF;
+  border: 1px solid #EAE5DC;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02), 0 8px 24px -4px rgba(30, 28, 26, 0.04);
+}
+
+.artwork-frame:hover {
+  border-color: #D8D1C3;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03), 0 16px 32px -6px rgba(30, 28, 26, 0.06);
+}
+
+/* Thanh cuộn tối giản siêu mảnh không gây thô ráp */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #E0DAD0;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #C8BFB2;
+}
+
+/* =========================================================================
+   ĐỊNH DẠNG XUẤT BẢN IN & LƯU PDF CHUẨN KHỔ A4 (MINH CHỨNG SƯ PHẠM)
+   ========================================================================= */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 10mm 12mm;
+  }
+
+  html,
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    height: auto !important;
+    min-height: auto !important;
+    overflow: visible !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Ẩn triệt để thanh Sidebar, Navigation, và các thành phần giao diện nền */
+  aside,
+  nav,
+  header,
+  .app-sidebar,
+  .app-main,
+  .print-hidden,
+  [data-print-hidden="true"] {
+    display: none !important;
+    visibility: hidden !important;
+  }
+
+  /* Bộ khung in mở rộng 100% trang A4 không bị cuộn hay cắt xén */
+  .report-print-target {
+    display: block !important;
+    position: static !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+  }
+}
