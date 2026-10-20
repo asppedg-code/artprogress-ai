@@ -134,8 +134,11 @@ export default function DashboardPage() {
 
   const [topicFilter, setTopicFilter] = useState<string>("all");
 
-  // Trạng thái Bảng trượt bên cạnh (Evaluation Drawer)
-  const [isEvaluationDrawerOpen, setIsEvaluationDrawerOpen] = useState(true);
+  // Trạng thái Bảng trượt bên cạnh (Evaluation Drawer) - Mặc định đóng để không che màn hình khi đăng nhập
+  const [isEvaluationDrawerOpen, setIsEvaluationDrawerOpen] = useState(false);
+
+  // Modal Tự đánh giá của học sinh
+  const [isReflectionModalOpen, setIsReflectionModalOpen] = useState(false);
 
   // Bộ lọc trạng thái bài nộp
   const [filterMode, setFilterMode] = useState<"all" | "pending" | "revised">("all");
@@ -186,8 +189,7 @@ export default function DashboardPage() {
   const [isEditingTeacherNotes, setIsEditingTeacherNotes] = useState(false);
   const [teacherNotesInput, setTeacherNotesInput] = useState("");
 
-  // Trạng thái chỉnh sửa tự đánh giá của học sinh
-  const [isEditingReflection, setIsEditingReflection] = useState(false);
+  // Trạng thái tự đánh giá của học sinh
   const [reflectionInput, setReflectionInput] = useState("");
 
   // 1. Khôi phục dữ liệu từ localStorage và phiên làm việc từ sessionStorage sau khi client hydrate xong
@@ -792,7 +794,7 @@ export default function DashboardPage() {
     };
     setArtworks((prev) => prev.map((a) => (a.id === updated.id ? updated : a)));
     setSelectedArtwork(updated);
-    setIsEditingReflection(false);
+    setIsReflectionModalOpen(false);
     saveArtworkToFirestore(updated);
   };
 
@@ -1286,6 +1288,16 @@ export default function DashboardPage() {
                   </button>
                 </div>
 
+                {/* Nút đăng xuất rõ ràng với nhãn chữ (đặc biệt dễ bấm trên mobile drawer) */}
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="w-full flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-semibold border border-rose-200 transition-colors cursor-pointer active:scale-98 shadow-2xs"
+                >
+                  <LogOut className="w-3.5 h-3.5 text-rose-600" />
+                  <span>Đăng xuất tài khoản</span>
+                </button>
+
                 <div className="flex items-center justify-between px-1 text-[9px] text-stone-400 font-mono">
                   <span>ArtProgress Studio</span>
                   <span className="bg-[#FAF8F5] border border-[#EAE5DC] px-1.5 py-0.2 rounded font-semibold text-stone-500">
@@ -1385,6 +1397,16 @@ export default function DashboardPage() {
                   title="Chuyển chế độ xem"
                 >
                   {activeNav === "portfolio" ? <BookOpen className="w-3.5 h-3.5 text-[#C86446]" /> : <Layers className="w-3.5 h-3.5 text-[#C86446]" />}
+                </button>
+
+                {/* NÚT ĐĂNG XUẤT TRÊN MOBILE HEADER */}
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="w-8 h-8 rounded-lg bg-rose-50 border border-rose-200 text-rose-600 hover:bg-rose-100 flex items-center justify-center text-[10px] active:scale-95 transition-all cursor-pointer shrink-0"
+                  title="Đăng xuất khỏi hệ thống"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
                 </button>
               </div>
             </header>
@@ -1933,142 +1955,171 @@ export default function DashboardPage() {
 
                 {/* VÙNG LÀM VIỆC CHÍNH */}
                 <div className={`${mobilePortfolioView === "list" ? "hidden md:flex" : "flex"} flex-1 flex-col h-full overflow-hidden min-w-0`}>
-                  {/* THANH HEADER BÀI VẼ: TINH GỌN, CO GIÃN THÔNG MINH */}
-                  <div className="h-13 shrink-0 bg-white border-b border-[#EAE5DC] px-3 sm:px-4 md:px-6 flex items-center justify-between gap-2 sm:gap-3 z-10 shadow-xs overflow-hidden">
-                    {/* BÊN TRÁI: NÚT QUAY LẠI TRÊN MOBILE + THÔNG TIN TÁC PHẨM & HUY HIỆU */}
-                    <div className="flex items-center gap-2 sm:gap-2.5 min-w-0 flex-1">
-                      {/* Nút quay lại danh sách bài vẽ trên mobile */}
-                      <button
-                        type="button"
-                        onClick={() => setMobilePortfolioView("list")}
-                        className="md:hidden flex items-center gap-1 text-xs font-semibold text-stone-600 hover:text-[#C86446] px-2 py-1.5 rounded-lg bg-[#FAF8F5] border border-[#EAE5DC] shrink-0 active:scale-95 cursor-pointer"
-                        title="Quay lại danh sách bài vẽ"
-                      >
-                        <ArrowLeft className="w-3.5 h-3.5" />
-                        <span className="text-[11px]">Danh sách</span>
-                      </button>
+                  {/* THANH HEADER BÀI VẼ: TINH GỌN, CO GIÃN THÔNG MINH, KHÔNG TRÀN LAYOUT */}
+                  <div className="shrink-0 bg-white border-b border-[#EAE5DC] px-3 sm:px-4 md:px-6 py-2 md:py-0 md:h-13 flex flex-col md:flex-row md:items-center justify-between gap-2 z-10 shadow-xs">
+                    {/* BÊN TRÁI (HOẶC HÀNG 1 TRÊN MOBILE): NÚT QUAY LẠI + THÔNG TIN TÁC PHẨM & HUY HIỆU */}
+                    <div className="flex items-center justify-between md:justify-start gap-2 sm:gap-2.5 min-w-0">
+                      <div className="flex items-center gap-2 min-w-0">
+                        {/* Nút quay lại danh sách bài vẽ trên mobile */}
+                        <button
+                          type="button"
+                          onClick={() => setMobilePortfolioView("list")}
+                          className="md:hidden flex items-center gap-1 text-xs font-semibold text-stone-600 hover:text-[#C86446] px-2 py-1 rounded-lg bg-[#FAF8F5] border border-[#EAE5DC] shrink-0 active:scale-95 cursor-pointer"
+                          title="Quay lại danh sách bài vẽ"
+                        >
+                          <ArrowLeft className="w-3.5 h-3.5" />
+                          <span className="text-[11px]">Danh sách</span>
+                        </button>
 
-                      {selectedArtwork ? (
-                        <>
-                          <h2
-                            className="font-serif font-bold text-xs sm:text-sm text-[#1E1C1A] truncate max-w-[120px] sm:max-w-[200px] md:max-w-xs shrink"
-                            title={selectedArtwork.title}
-                          >
-                            {selectedArtwork.title}
-                          </h2>
+                        {selectedArtwork ? (
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-1.5">
+                              <h2
+                                className="font-serif font-bold text-xs sm:text-sm text-[#1E1C1A] truncate max-w-[130px] sm:max-w-[180px] md:max-w-xs shrink"
+                                title={selectedArtwork.title}
+                              >
+                                {selectedArtwork.title}
+                              </h2>
+                              {selectedArtwork.isPublic && (
+                                <span className="text-emerald-700 shrink-0" title="Tác phẩm đang được trưng bày tại Phòng Triển Lãm">
+                                  <Globe className="w-3 h-3" />
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-[10px] text-stone-500 truncate font-sans">
+                              HS: <strong className="text-stone-800">{selectedArtwork.studentName}</strong> • {selectedClass.name}
+                            </p>
+                          </div>
+                        ) : (
+                          <span className="text-xs text-stone-400 italic">Chưa chọn tác phẩm</span>
+                        )}
+                      </div>
 
-                          <span className="text-[10px] sm:text-[11px] bg-[#F5F2EB] text-stone-700 font-medium px-2 py-0.5 rounded-full shrink-0">
-                            HS: {selectedArtwork.studentName}
-                          </span>
-
-                          {/* Huy hiệu tiến trình thực tế của bài vẽ */}
+                      {/* Huy hiệu tiến trình thực tế của bài vẽ */}
+                      {selectedArtwork && (
+                        <div className="shrink-0 flex items-center gap-1">
                           {selectedArtwork.revisedImageUrl ? (
-                            <span className="text-[10px] bg-emerald-50 text-emerald-800 font-semibold px-2 py-0.5 rounded-full border border-emerald-200 shrink-0 hidden sm:flex items-center gap-1">
+                            <span className="text-[9.5px] sm:text-[10px] bg-emerald-50 text-emerald-800 font-semibold px-2 py-0.5 rounded-full border border-emerald-200 flex items-center gap-1">
                               <Sliders className="w-2.5 h-2.5" />
-                              <span>Bản hoàn thiện</span>
+                              <span className="hidden sm:inline">Bản hoàn thiện</span>
+                              <span className="sm:hidden">Đã sửa</span>
                             </span>
                           ) : (
-                            <span className="text-[10px] bg-amber-50 text-amber-800 font-semibold px-2 py-0.5 rounded-full border border-amber-200 shrink-0 hidden sm:inline-block">
-                              Bản phác thảo
+                            <span className="text-[9.5px] sm:text-[10px] bg-amber-50 text-amber-800 font-semibold px-2 py-0.5 rounded-full border border-amber-200">
+                              Phác thảo
                             </span>
                           )}
-
-                          {/* Biểu tượng triển lãm tinh tế */}
-                          {selectedArtwork.isPublic && (
-                            <span className="text-emerald-700 shrink-0 hidden sm:inline-flex" title="Tác phẩm đang được trưng bày tại Phòng Triển Lãm">
-                              <Globe className="w-3.5 h-3.5" />
-                            </span>
-                          )}
-                        </>
-                      ) : (
-                        <span className="text-xs text-stone-400 italic">Chưa chọn tác phẩm</span>
+                        </div>
                       )}
                     </div>
 
-                    {/* BÊN PHẢI: NÚT THAO TÁC CHIẾN LƯỢC, CO GIÃN THEO MÀN HÌNH */}
-                    <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-                      {/* 1. NÚT XUẤT BẢN IN BÁO CÁO TIẾN BỘ SƯ PHẠM */}
-                      {selectedArtwork && (
+                    {/* BÊN PHẢI (HOẶC HÀNG 2 TRÊN MOBILE): CÁC NÚT THAO TÁC KHÔNG BAO GIỜ BỊ TRÀN */}
+                    {selectedArtwork && (
+                      <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar shrink-0 py-0.5">
+                        {/* 1. NÚT TỰ ĐÁNH GIÁ (NỔI BẬT DÀNH CHO HỌC SINH & GIÁO VIÊN) */}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setReflectionInput(selectedArtwork.selfReflection?.reflectionText || "");
+                            setIsReflectionModalOpen(true);
+                          }}
+                          className={`px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 shadow-xs cursor-pointer active:scale-95 shrink-0 transition-all ${
+                            selectedArtwork.selfReflection
+                              ? "bg-emerald-50 border border-emerald-200 text-emerald-800 hover:bg-emerald-100"
+                              : "bg-[#F6EDE8] border border-[#E8D7CF] text-[#C86446] hover:bg-[#F0DFD7]"
+                          }`}
+                          title="Tự đánh giá bài vẽ của em"
+                        >
+                          <Award className="w-3.5 h-3.5" />
+                          <span>
+                            {selectedArtwork.selfReflection
+                              ? role === "student" && selectedArtwork.studentId === currentStudent?.id
+                                ? "Sửa tự đánh giá"
+                                : "Xem tự đánh giá"
+                              : "Tự đánh giá"}
+                          </span>
+                        </button>
+
+                        {/* 2. NÚT PRIMARY: MỞ / THU GỌN BẢNG CHẤM ĐIỂM */}
+                        <button
+                          type="button"
+                          onClick={() => setIsEvaluationDrawerOpen(!isEvaluationDrawerOpen)}
+                          className={`px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold border flex items-center gap-1 sm:gap-1.5 transition-all shadow-xs cursor-pointer active:scale-95 shrink-0 ${
+                            isEvaluationDrawerOpen
+                              ? "bg-[#C86446] text-white border-[#C86446]"
+                              : "bg-white text-stone-700 border-[#E8D7CF] hover:bg-[#F6EDE8] hover:text-[#C86446]"
+                          }`}
+                        >
+                          <FileText className="w-3.5 h-3.5" />
+                          <span className="hidden md:inline">{isEvaluationDrawerOpen ? "Thu gọn bảng điểm" : "Bảng chấm điểm"}</span>
+                          <span className="md:hidden">{isEvaluationDrawerOpen ? "Đóng điểm" : "Điểm & Lời phê"}</span>
+                          {selectedArtwork?.feedback?.status === "pending_moderation" && (
+                            <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+                          )}
+                        </button>
+
+                        {/* 3. NÚT NỘP BẢN SỬA (CHỈ HIỂN THỊ KHI LÀ HỌC SINH TÁC GIẢ) */}
+                        {role === "student" &&
+                          selectedArtwork.studentId === currentStudent?.id &&
+                          !selectedArtwork.revisedImageUrl && (() => {
+                            const artworkTopic = topics.find((t) => t.id === selectedArtwork.topicId) || selectedTopic;
+                            const isTopicActive = artworkTopic ? artworkTopic.isActive : false;
+                            return (
+                              <button
+                                type="button"
+                                disabled={!isTopicActive}
+                                onClick={() => {
+                                  if (artworkTopic) setSelectedTopic(artworkTopic);
+                                  setIsRevisionUpload(true);
+                                  setIsUploadModalOpen(true);
+                                }}
+                                className={`px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold shadow-xs flex items-center gap-1 sm:gap-1.5 transition-all shrink-0 active:scale-95 ${
+                                  isTopicActive
+                                    ? "bg-[#4F6B58] hover:bg-[#3D5344] text-white cursor-pointer"
+                                    : "bg-stone-200 text-stone-400 cursor-not-allowed"
+                                }`}
+                                title={!artworkTopic ? "Chưa có chủ đề bài học" : !isTopicActive ? "Chủ đề này đã đóng nộp bài" : ""}
+                              >
+                                <Upload className="w-3.5 h-3.5" />
+                                <span>Nộp bản sửa</span>
+                              </button>
+                            );
+                          })()}
+
+                        {/* 4. NÚT XUẤT BẢN IN BÁO CÁO TIẾN BỘ SƯ PHẠM */}
                         <button
                           type="button"
                           onClick={() => setIsReportModalOpen(true)}
-                          className="px-2 sm:px-2.5 py-1.5 rounded-lg text-xs font-medium border border-[#E8D7CF] bg-white hover:bg-[#FAF8F5] text-stone-700 hover:text-[#C86446] flex items-center gap-1 sm:gap-1.5 shadow-xs cursor-pointer transition-colors"
-                          title="Xuất bản in báo cáo tiến bộ sư phạm khổ A4 (Minh chứng Ngày hội sáng tạo 2026)"
+                          className="px-2 sm:px-2.5 py-1.5 rounded-lg text-xs font-medium border border-[#E8D7CF] bg-white hover:bg-[#FAF8F5] text-stone-700 hover:text-[#C86446] flex items-center gap-1 shadow-xs cursor-pointer transition-colors shrink-0 active:scale-95"
+                          title="Xuất bản in báo cáo tiến bộ sư phạm khổ A4"
                         >
                           <Printer className="w-3.5 h-3.5 text-[#C86446]" />
                           <span className="hidden sm:inline">Báo cáo (PDF)</span>
                         </button>
-                      )}
 
-                      {/* 2. NÚT NỘP BẢN SỬA (CHỈ HIỂN THỊ KHI LÀ HỌC SINH TÁC GIẢ) */}
-                      {role === "student" &&
-                        selectedArtwork &&
-                        selectedArtwork.studentId === currentStudent?.id &&
-                        !selectedArtwork.revisedImageUrl && (() => {
-                          const artworkTopic = topics.find((t) => t.id === selectedArtwork.topicId) || selectedTopic;
-                          const isTopicActive = artworkTopic ? artworkTopic.isActive : false;
-                          return (
-                            <button
-                              type="button"
-                              disabled={!isTopicActive}
-                              onClick={() => {
-                                if (artworkTopic) setSelectedTopic(artworkTopic);
-                                setIsRevisionUpload(true);
-                                setIsUploadModalOpen(true);
-                              }}
-                              className={`px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-medium shadow-xs flex items-center gap-1 sm:gap-1.5 transition-colors ${isTopicActive
-                                  ? "bg-[#4F6B58] hover:bg-[#3D5344] text-white cursor-pointer"
-                                  : "bg-stone-200 text-stone-400 cursor-not-allowed"
-                                }`}
-                              title={!artworkTopic ? "Chưa có chủ đề bài học" : !isTopicActive ? "Chủ đề này đã đóng nộp bài" : ""}
-                            >
-                              <Upload className="w-3.5 h-3.5" />
-                              <span className="hidden sm:inline">Nộp bản sửa</span>
-                              <span className="sm:hidden">Sửa</span>
-                            </button>
-                          );
-                        })()}
-
-                      {/* NÚT XÓA TÁC PHẨM (CHO GIÁO VIÊN HOẶC HỌC SINH TÁC GIẢ KHI ĐANG CHỜ DUYỆT) */}
-                      {selectedArtwork &&
-                        (role === "teacher" ||
+                        {/* 5. NÚT XÓA TÁC PHẨM (CHO GIÁO VIÊN HOẶC HỌC SINH TÁC GIẢ KHI ĐANG CHỜ DUYỆT) */}
+                        {(role === "teacher" ||
                           (role === "student" &&
                             selectedArtwork.studentId === currentStudent?.id &&
                             selectedArtwork.feedback?.status === "pending_moderation")) && (
                           <button
                             type="button"
                             onClick={() => handleDeleteArtwork(selectedArtwork.id)}
-                            className="px-2 sm:px-2.5 py-1.5 rounded-lg text-xs font-medium border border-rose-200 bg-white hover:bg-rose-50 text-rose-600 flex items-center gap-1 shadow-xs cursor-pointer transition-colors"
+                            className="px-2 sm:px-2.5 py-1.5 rounded-lg text-xs font-medium border border-rose-200 bg-white hover:bg-rose-50 text-rose-600 flex items-center gap-1 shadow-xs cursor-pointer transition-colors shrink-0 active:scale-95"
                             title="Xóa tác phẩm này"
                           >
                             <Trash2 className="w-3.5 h-3.5 text-rose-500" />
                             <span className="hidden sm:inline">Xóa</span>
                           </button>
                         )}
-
-                      {/* 3. NÚT PRIMARY: MỞ / THU GỌN BẢNG CHẤM ĐIỂM */}
-                      <button
-                        type="button"
-                        onClick={() => setIsEvaluationDrawerOpen(!isEvaluationDrawerOpen)}
-                        className={`px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold border flex items-center gap-1 sm:gap-1.5 transition-all shadow-xs cursor-pointer ${isEvaluationDrawerOpen
-                            ? "bg-[#C86446] text-white border-[#C86446]"
-                            : "bg-white text-stone-700 border-[#E8D7CF] hover:bg-[#F6EDE8] hover:text-[#C86446]"
-                          }`}
-                      >
-                        <FileText className="w-3.5 h-3.5" />
-                        <span className="hidden sm:inline">{isEvaluationDrawerOpen ? "Thu gọn" : "Bảng chấm điểm"}</span>
-                        <span className="sm:hidden">{isEvaluationDrawerOpen ? "Đóng" : "Điểm & Lời phê"}</span>
-                        {selectedArtwork?.feedback?.status === "pending_moderation" && (
-                          <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
-                        )}
-                      </button>
-                    </div>
+                      </div>
+                    )}
                   </div>
 
                   {/* KHÔNG GIAN QUAN SÁT TÁC PHẨM TRÀN VIỀN RỘNG RÃI */}
-                  <section className="flex-1 p-3 sm:p-4 md:p-6 flex flex-col justify-between overflow-y-auto md:overflow-hidden bg-[#FAF8F5]">
+                  <section className="flex-1 p-3 sm:p-4 md:p-6 overflow-y-auto bg-[#FAF8F5]">
                     {selectedArtwork ? (
-                      <div className="h-full flex flex-col justify-between max-w-6xl w-full mx-auto">
+                      <div className="min-h-full flex flex-col justify-between max-w-6xl w-full mx-auto space-y-3">
                         {/* KHUNG TRANH BEFORE - AFTER */}
                         <div className="flex-1 flex flex-col min-h-0">
                           <div className="flex items-center justify-between mb-2 shrink-0">
@@ -2150,9 +2201,9 @@ export default function DashboardPage() {
                                   type="button"
                                   onClick={() => {
                                     setReflectionInput(selectedArtwork.selfReflection?.reflectionText || "");
-                                    setIsEditingReflection(true);
+                                    setIsReflectionModalOpen(true);
                                   }}
-                                  className="text-[#C86446] hover:underline text-[10px] flex items-center gap-0.5 cursor-pointer"
+                                  className="text-[#C86446] hover:underline text-[10px] flex items-center gap-0.5 cursor-pointer font-semibold"
                                 >
                                   <Edit3 className="w-3 h-3" />
                                   <span>{selectedArtwork.selfReflection ? "Sửa ghi chú" : "Viết tự đánh giá"}</span>
@@ -2160,33 +2211,7 @@ export default function DashboardPage() {
                               )}
                             </div>
 
-                            {isEditingReflection ? (
-                              <div className="mt-1 space-y-1.5">
-                                <textarea
-                                  rows={2}
-                                  value={reflectionInput}
-                                  onChange={(e) => setReflectionInput(e.target.value)}
-                                  placeholder="Sau khi nghe Thầy/Cô góp ý, em đã sửa tranh như thế nào và rút ra bài học gì?"
-                                  className="w-full text-xs p-2 rounded-lg border border-[#EAE5DC] focus:outline-none focus:border-[#C86446] resize-none"
-                                />
-                                <div className="flex justify-end gap-1.5">
-                                  <button
-                                    type="button"
-                                    onClick={() => setIsEditingReflection(false)}
-                                    className="px-2 py-0.5 rounded text-[10px] text-stone-500 hover:bg-stone-100"
-                                  >
-                                    Hủy
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={handleSaveSelfReflection}
-                                    className="px-2 py-0.5 rounded text-[10px] bg-[#C86446] text-white font-medium"
-                                  >
-                                    Lưu tự đánh giá
-                                  </button>
-                                </div>
-                              </div>
-                            ) : selectedArtwork.selfReflection ? (
+                            {selectedArtwork.selfReflection ? (
                               <p className="text-stone-600 truncate text-[11px]">
                                 {selectedArtwork.selfReflection.reflectionText}
                               </p>
@@ -2611,6 +2636,116 @@ export default function DashboardPage() {
             isOpen={isReportModalOpen}
             onClose={() => setIsReportModalOpen(false)}
           />
+
+          {/* Modal Tự Đánh Giá Học Sinh */}
+          {isReflectionModalOpen && selectedArtwork && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-stone-900/60 backdrop-blur-xs">
+              <div className="bg-white rounded-3xl max-w-lg w-full p-4 sm:p-6 shadow-2xl border border-stone-100 flex flex-col max-h-[92vh] sm:max-h-[88vh] overflow-hidden animate-in fade-in zoom-in-95 duration-200 mx-auto">
+                {/* Header */}
+                <div className="flex items-center justify-between pb-3 sm:pb-4 border-b border-stone-100 shrink-0">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-[#F6EDE8] border border-[#E8D7CF] text-[#C86446] flex items-center justify-center shadow-xs shrink-0">
+                      <Award className="w-4 h-4 sm:w-5 sm:h-5" />
+                    </div>
+                    <div className="min-w-0">
+                      <h3 className="font-serif font-bold text-base sm:text-lg text-stone-900 truncate">
+                        Góc Tự Đánh Giá Học Sinh
+                      </h3>
+                      <p className="text-[11px] sm:text-xs text-stone-500 font-sans truncate">
+                        {selectedArtwork.title} • {selectedArtwork.studentName} ({selectedClass.name})
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsReflectionModalOpen(false)}
+                    className="w-8 h-8 rounded-xl hover:bg-stone-100 text-stone-400 hover:text-stone-700 flex items-center justify-center transition-colors cursor-pointer shrink-0"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+
+                {/* Body */}
+                <div className="flex-1 overflow-y-auto py-3 space-y-3.5 overscroll-contain">
+                  {/* Lời phê hoặc góp ý của Thầy/Cô (nếu có) để học sinh đối chiếu */}
+                  {selectedArtwork.feedback && (
+                    <div className="p-3 bg-[#FAF8F5] border border-[#EAE5DC] rounded-xl text-xs space-y-1">
+                      <span className="font-bold text-[#4F6B58] block text-[11px] flex items-center gap-1">
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        Góp ý sư phạm của Giáo viên:
+                      </span>
+                      <p className="text-stone-700 italic text-[11px] leading-relaxed">
+                        &ldquo;{selectedArtwork.feedback.teacherNotes || selectedArtwork.feedback.overallStrength || "Đạt yêu cầu bài học."}&rdquo;
+                      </p>
+                    </div>
+                  )}
+
+                  {role === "student" && selectedArtwork.studentId === currentStudent?.id ? (
+                    <div className="space-y-2">
+                      <label className="block text-xs font-semibold text-stone-800">
+                        Cảm nhận &amp; bài học rút ra của em:
+                      </label>
+                      <textarea
+                        rows={4}
+                        value={reflectionInput}
+                        onChange={(e) => setReflectionInput(e.target.value)}
+                        placeholder="Sau khi nghe Thầy/Cô góp ý, em đã sửa tranh như thế nào và rút ra bài học gì về màu sắc, nét vẽ hoặc bố cục?..."
+                        className="w-full text-xs p-3 rounded-xl border border-stone-300 focus:outline-none focus:border-[#C86446] focus:ring-1 focus:ring-[#C86446] font-sans leading-relaxed resize-none"
+                      />
+                      <div className="p-2.5 rounded-xl bg-amber-50/70 border border-amber-200/60 text-[11px] text-amber-900 space-y-0.5">
+                        <p className="font-semibold flex items-center gap-1">
+                          <Sparkles className="w-3 h-3 text-amber-700" />
+                          Gợi ý tự đánh giá theo GDPT 2018:
+                        </p>
+                        <p className="text-[10.5px] text-amber-800">
+                          • Em đã chỉnh sửa điểm nào về bố cục, đường nét hoặc hòa sắc?
+                        </p>
+                        <p className="text-[10.5px] text-amber-800">
+                          • Bản hoàn thiện đã thể hiện đúng ý tưởng sáng tạo của em chưa?
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="p-3 rounded-xl bg-stone-50 border border-stone-200 space-y-1 text-xs">
+                      <span className="font-bold text-stone-700 block text-[11px]">
+                        Nội dung tự đánh giá của học sinh:
+                      </span>
+                      {selectedArtwork.selfReflection ? (
+                        <p className="text-stone-800 leading-relaxed text-xs">
+                          {selectedArtwork.selfReflection.reflectionText}
+                        </p>
+                      ) : (
+                        <p className="text-stone-400 italic text-[11px]">
+                          Học sinh chưa ghi nhận nội dung tự đánh giá cho tác phẩm này.
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Footer */}
+                <div className="pt-3 border-t border-stone-100 flex items-center justify-end gap-2 shrink-0 bg-white">
+                  <button
+                    type="button"
+                    onClick={() => setIsReflectionModalOpen(false)}
+                    className="px-4 py-2 rounded-xl border border-stone-200 text-xs font-semibold text-stone-600 hover:bg-stone-50 cursor-pointer"
+                  >
+                    Đóng
+                  </button>
+                  {role === "student" && selectedArtwork.studentId === currentStudent?.id && (
+                    <button
+                      type="button"
+                      onClick={handleSaveSelfReflection}
+                      className="px-5 py-2 rounded-xl bg-[#C86446] hover:bg-[#B25337] text-white text-xs font-semibold shadow-xs flex items-center gap-1.5 transition-all cursor-pointer active:scale-95"
+                    >
+                      <Check className="w-4 h-4" />
+                      <span>Lưu tự đánh giá</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Modal Tạo chủ đề mới kèm thiết lập Rubric */}
           {isCreateTopicModalOpen && (
