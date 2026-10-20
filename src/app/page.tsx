@@ -1281,22 +1281,12 @@ export default function DashboardPage() {
                   <button
                     type="button"
                     onClick={handleLogout}
-                    className="p-1.5 text-stone-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer shrink-0 ml-1"
-                    title="Đăng xuất khỏi hệ thống"
+                    className="p-1.5 text-stone-400 hover:text-stone-700 hover:bg-stone-100 rounded-lg transition-colors cursor-pointer shrink-0 ml-1"
+                    title="Đăng xuất"
                   >
                     <LogOut className="w-3.5 h-3.5" />
                   </button>
                 </div>
-
-                {/* Nút đăng xuất rõ ràng với nhãn chữ (đặc biệt dễ bấm trên mobile drawer) */}
-                <button
-                  type="button"
-                  onClick={handleLogout}
-                  className="w-full flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-semibold border border-rose-200 transition-colors cursor-pointer active:scale-98 shadow-2xs"
-                >
-                  <LogOut className="w-3.5 h-3.5 text-rose-600" />
-                  <span>Đăng xuất tài khoản</span>
-                </button>
 
                 <div className="flex items-center justify-between px-1 text-[9px] text-stone-400 font-mono">
                   <span>ArtProgress Studio</span>
@@ -1397,16 +1387,6 @@ export default function DashboardPage() {
                   title="Chuyển chế độ xem"
                 >
                   {activeNav === "portfolio" ? <BookOpen className="w-3.5 h-3.5 text-[#C86446]" /> : <Layers className="w-3.5 h-3.5 text-[#C86446]" />}
-                </button>
-
-                {/* NÚT ĐĂNG XUẤT TRÊN MOBILE HEADER */}
-                <button
-                  type="button"
-                  onClick={handleLogout}
-                  className="w-8 h-8 rounded-lg bg-rose-50 border border-rose-200 text-rose-600 hover:bg-rose-100 flex items-center justify-center text-[10px] active:scale-95 transition-all cursor-pointer shrink-0"
-                  title="Đăng xuất khỏi hệ thống"
-                >
-                  <LogOut className="w-3.5 h-3.5" />
                 </button>
               </div>
             </header>

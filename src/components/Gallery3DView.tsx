@@ -17,6 +17,8 @@ import {
   ArrowDown,
   ArrowLeft,
   ArrowRight,
+  Smartphone,
+  RotateCw,
 } from "lucide-react";
 
 interface Gallery3DViewProps {
@@ -285,6 +287,35 @@ export function Gallery3DView({
   const [showHelp, setShowHelp] = useState(true);
   const [focusedArtwork, setFocusedArtwork] = useState<Artwork | null>(null);
   const [activeArtworkIndex, setActiveArtworkIndex] = useState(0);
+  const [showRotatePrompt, setShowRotatePrompt] = useState(false);
+
+  // Theo dõi hướng màn hình để nhắc xoay ngang trên thiết bị di động
+  useEffect(() => {
+    const checkOrientation = () => {
+      const hasTouch = (
+        ("ontouchstart" in window) ||
+        navigator.maxTouchPoints > 0 ||
+        window.matchMedia("(pointer: coarse)").matches ||
+        window.innerWidth < 1024
+      );
+      const isMobileSize = window.innerWidth < 1024;
+      const isPortrait = window.innerHeight > window.innerWidth;
+      if (hasTouch && isMobileSize && isPortrait) {
+        setShowRotatePrompt(true);
+      } else {
+        // Tự động tắt thông báo khi người dùng đã xoay ngang màn hình
+        setShowRotatePrompt(false);
+      }
+    };
+
+    checkOrientation();
+    window.addEventListener("resize", checkOrientation);
+    window.addEventListener("orientationchange", checkOrientation);
+    return () => {
+      window.removeEventListener("resize", checkOrientation);
+      window.removeEventListener("orientationchange", checkOrientation);
+    };
+  }, []);
 
   // Refs điều khiển và vòng đời Three.js
   const focusedArtRef = useRef<Artwork | null>(null);
@@ -1228,18 +1259,76 @@ export function Gallery3DView({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [artworksKey, focusOnArtworkByIndex]);
 
-  // Phím điều khiển ảo cho điện thoại
-  const handleVirtualWalk = (dir: "w" | "s" | "a" | "d", isPress: boolean) => {
+  // Phím điều khiển ảo cho điện thoại (Hỗ trợ cả chạm tức thì và giữ phím)
+  const handleVirtualWalk = useCallback((dir: "w" | "s" | "a" | "d", isPress: boolean) => {
     const codeMap: { [key: string]: string } = {
       w: "KeyW",
       s: "KeyS",
       a: "KeyA",
       d: "KeyD",
     };
-    stateRef.current.keys[codeMap[dir]] = isPress;
-    stateRef.current.targetCamPos = null;
-    stateRef.current.targetCamLook = null;
-  };
+    const state = stateRef.current;
+    state.keys[codeMap[dir]] = isPress;
+    state.targetCamPos = null;
+    state.targetCamLook = null;
+
+    if (isPress) {
+      // Khi vừa chạm: Lập tức cấp gia tốc đẩy bước chân (Step impulse)
+      // Giúp dù người dùng chạm nhẹ (tap) hay giữ lâu (hold), bước đi vẫn di chuyển rõ nét và tức thì!
+      const stepImpulse = 3.2;
+      _vForward.set(-Math.sin(state.yaw), 0, -Math.cos(state.yaw)).normalize();
+      _vRight.set(Math.cos(state.yaw), 0, -Math.sin(state.yaw)).normalize();
+
+      if (dir === "w") {
+        state.velocity.x += _vForward.x * stepImpulse;
+        state.velocity.z += _vForward.z * stepImpulse;
+      } else if (dir === "s") {
+        state.velocity.x -= _vForward.x * stepImpulse;
+        state.velocity.z -= _vForward.z * stepImpulse;
+      } else if (dir === "a") {
+        state.velocity.x -= _vRight.x * stepImpulse;
+        state.velocity.z -= _vRight.z * stepImpulse;
+      } else if (dir === "d") {
+        state.velocity.x += _vRight.x * stepImpulse;
+        state.velocity.z += _vRight.z * stepImpulse;
+      }
+    }
+  }, []);
+
+  const createWalkHandlers = useCallback((dir: "w" | "s" | "a" | "d") => {
+    return {
+      onPointerDown: (e: React.PointerEvent) => {
+        e.preventDefault();
+        try {
+          (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+        } catch {}
+        handleVirtualWalk(dir, true);
+      },
+      onPointerUp: (e: React.PointerEvent) => {
+        e.preventDefault();
+        try {
+          (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
+        } catch {}
+        handleVirtualWalk(dir, false);
+      },
+      onPointerCancel: (e: React.PointerEvent) => {
+        e.preventDefault();
+        handleVirtualWalk(dir, false);
+      },
+      onPointerLeave: (e: React.PointerEvent) => {
+        if (!e.currentTarget.hasPointerCapture?.(e.pointerId)) {
+          handleVirtualWalk(dir, false);
+        }
+      },
+      onContextMenu: (e: React.MouseEvent) => e.preventDefault(),
+      style: {
+        touchAction: "none",
+        WebkitTouchCallout: "none",
+        userSelect: "none",
+        WebkitUserSelect: "none",
+      } as React.CSSProperties,
+    };
+  }, [handleVirtualWalk]);
 
   // Bật/tắt toàn màn hình
   const toggleFullscreen = () => {
@@ -1451,39 +1540,82 @@ export function Gallery3DView({
 
       {/* =====================================================================
           NÚT ĐIỀU HƯỚNG ẢO CHO THIẾT BỊ DI ĐỘNG (MOBILE D-PAD)
+          Hiển thị linh hoạt trên cả chế độ dọc (portrait) và xoay ngang (landscape)
           ===================================================================== */}
-      <div className="sm:hidden absolute bottom-20 left-4 pointer-events-auto z-20 flex flex-col items-center gap-1 bg-stone-900/80 p-2 rounded-2xl border border-stone-700/60 backdrop-blur-md">
+      <div className="absolute bottom-20 landscape:bottom-3 sm:landscape:bottom-4 left-3 sm:left-4 pointer-events-auto z-20 flex flex-col items-center gap-1 bg-stone-900/85 p-1.5 sm:p-2 rounded-2xl border border-stone-700/60 backdrop-blur-md shadow-2xl select-none">
         <button
-          onTouchStart={() => handleVirtualWalk("w", true)}
-          onTouchEnd={() => handleVirtualWalk("w", false)}
-          className="w-9 h-9 rounded-xl bg-stone-800 active:bg-amber-600 text-white flex items-center justify-center"
+          type="button"
+          {...createWalkHandlers("w")}
+          className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-stone-800 hover:bg-stone-700 active:bg-amber-600 active:scale-95 text-white flex items-center justify-center transition-transform select-none shadow-sm cursor-pointer"
+          title="Tiến lên"
+          aria-label="Tiến lên"
         >
-          <ArrowUp className="w-4 h-4" />
+          <ArrowUp className="w-5 h-5 pointer-events-none" />
         </button>
         <div className="flex gap-1">
           <button
-            onTouchStart={() => handleVirtualWalk("a", true)}
-            onTouchEnd={() => handleVirtualWalk("a", false)}
-            className="w-9 h-9 rounded-xl bg-stone-800 active:bg-amber-600 text-white flex items-center justify-center"
+            type="button"
+            {...createWalkHandlers("a")}
+            className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-stone-800 hover:bg-stone-700 active:bg-amber-600 active:scale-95 text-white flex items-center justify-center transition-transform select-none shadow-sm cursor-pointer"
+            title="Qua trái"
+            aria-label="Qua trái"
           >
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeft className="w-5 h-5 pointer-events-none" />
           </button>
           <button
-            onTouchStart={() => handleVirtualWalk("s", true)}
-            onTouchEnd={() => handleVirtualWalk("s", false)}
-            className="w-9 h-9 rounded-xl bg-stone-800 active:bg-amber-600 text-white flex items-center justify-center"
+            type="button"
+            {...createWalkHandlers("s")}
+            className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-stone-800 hover:bg-stone-700 active:bg-amber-600 active:scale-95 text-white flex items-center justify-center transition-transform select-none shadow-sm cursor-pointer"
+            title="Lùi lại"
+            aria-label="Lùi lại"
           >
-            <ArrowDown className="w-4 h-4" />
+            <ArrowDown className="w-5 h-5 pointer-events-none" />
           </button>
           <button
-            onTouchStart={() => handleVirtualWalk("d", true)}
-            onTouchEnd={() => handleVirtualWalk("d", false)}
-            className="w-9 h-9 rounded-xl bg-stone-800 active:bg-amber-600 text-white flex items-center justify-center"
+            type="button"
+            {...createWalkHandlers("d")}
+            className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-stone-800 hover:bg-stone-700 active:bg-amber-600 active:scale-95 text-white flex items-center justify-center transition-transform select-none shadow-sm cursor-pointer"
+            title="Qua phải"
+            aria-label="Qua phải"
           >
-            <ArrowRight className="w-4 h-4" />
+            <ArrowRight className="w-5 h-5 pointer-events-none" />
           </button>
         </div>
       </div>
+
+      {/* =====================================================================
+          THÔNG BÁO GỢI Ý XOAY NGANG MÀN HÌNH TRÊN DI ĐỘNG
+          Tự động xuất hiện khi ở chế độ dọc và tự tắt khi người dùng xoay ngang
+          ===================================================================== */}
+      {showRotatePrompt && (
+        <div className="absolute inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-300">
+          <div className="bg-stone-900/95 border border-stone-700/80 rounded-3xl p-5 sm:p-6 max-w-[340px] w-full text-center shadow-2xl space-y-4">
+            <div className="relative w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-500/20 to-amber-600/10 border border-amber-500/30 flex items-center justify-center mx-auto text-amber-400">
+              <Smartphone className="w-8 h-8 animate-pulse rotate-90 transition-transform" />
+              <RotateCw className="w-4 h-4 text-amber-300 absolute -top-1 -right-1 animate-spin" style={{ animationDuration: "6s" }} />
+            </div>
+
+            <div className="space-y-1.5">
+              <h3 className="font-serif text-lg font-bold text-white tracking-tight">
+                Xoay Ngang Màn Hình
+              </h3>
+              <p className="text-xs text-stone-300 leading-relaxed">
+                Phòng triển lãm 3D được thiết kế theo tỷ lệ điện ảnh góc rộng. Bạn hãy xoay ngang điện thoại để có tầm nhìn khoáng đạt và điều khiển bước đi thuận tiện nhất nhé.
+              </p>
+            </div>
+
+            <div className="pt-1">
+              <button
+                type="button"
+                onClick={() => setShowRotatePrompt(false)}
+                className="w-full py-2.5 px-4 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-white font-bold text-xs rounded-xl shadow-md transition-all active:scale-98 cursor-pointer flex items-center justify-center gap-1.5"
+              >
+                <span>Đã hiểu • Tiếp tục xem</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
