@@ -168,13 +168,13 @@ export function LoginPage({
       className="min-h-[100dvh] w-full relative flex items-center justify-center p-2 sm:p-4 md:p-8 login-screen-bg selection:bg-[#F3E2C4] selection:text-[#96590F] overflow-x-hidden overflow-y-auto font-sans"
     >
       <style>{`
-        /* Nền đăng nhập thích ứng: Mobile dùng tranh viền dọc (#fdf9ee), Desktop dùng studio tranh ngang (#FAF6EE) */
+        /* Nền đăng nhập thích ứng: Mobile dùng tranh viền 1080x2400 bao phủ tràn màn hình (#fdf9ee), Desktop dùng studio tranh ngang (#FAF6EE) */
         .login-screen-bg {
           background-color: #fdf9ee;
           background-image: url('/login-bg-mobile.png');
           background-repeat: no-repeat;
-          background-position: center center;
-          background-size: contain;
+          background-position: center top;
+          background-size: cover;
         }
         @media (min-width: 1024px) {
           .login-screen-bg {
