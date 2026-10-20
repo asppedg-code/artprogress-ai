@@ -28,6 +28,8 @@ import {
   LogOut,
   Users,
   UserPlus,
+  Menu,
+  ArrowLeft,
 } from "lucide-react";
 import { INITIAL_ARTWORKS, INITIAL_TOPICS, INITIAL_STUDENTS, INITIAL_CLASSES } from "@/lib/mock-data";
 import { Artwork, ArtworkFeedback, Topic, Student, RubricCriterion, ClassRoom } from "@/types/artprogress";
@@ -65,6 +67,10 @@ export default function DashboardPage() {
   const [teacherPinError, setTeacherPinError] = useState("");
   const [currentNav, setCurrentNav] = useState<"portfolio" | "topics" | "rubric" | "gallery">("portfolio");
   const [galleryViewMode, setGalleryViewMode] = useState<"3d" | "grid">("3d");
+
+  // Quản lý điều hướng thích ứng trên thiết bị di động (Mobile Adaptive)
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [mobilePortfolioView, setMobilePortfolioView] = useState<"list" | "detail">("list");
 
   // Hiệu ứng chuyển cảnh vệt cọ vẽ (#C4572F) dứt khoát khi đăng nhập
   const [isBrushTransitioning, setIsBrushTransitioning] = useState(false);
@@ -925,26 +931,58 @@ export default function DashboardPage() {
           1. TRỤC ĐIỀU HƯỚNG CỐ ĐỊNH BÊN TRÁI (w-60)
           Tích hợp Bộ quản lý 4 Khối & 16 Lớp học THCS
       ========================================================================= */}
-          <aside className="w-60 shrink-0 bg-white border-r border-[#EAE5DC] flex flex-col justify-between h-full z-20 print:hidden">
+          {/* LỚP PHỦ MỜ NỀN CHO MOBILE KHI MỞ SIDEBAR */}
+          {isMobileSidebarOpen && (
+            <div
+              onClick={() => setIsMobileSidebarOpen(false)}
+              className="fixed inset-0 bg-stone-900/50 backdrop-blur-xs z-40 md:hidden animate-in fade-in duration-200"
+              aria-hidden="true"
+            />
+          )}
+
+          {/* =========================================================================
+          1. TRỤC ĐIỀU HƯỚNG BÊN TRÁI (w-60)
+          Tích hợp Bộ quản lý 4 Khối & 16 Lớp học THCS
+          - Desktop (md+): Cố định bên trái
+          - Mobile (<md): Slide-over drawer trượt ra vào mượt mà
+      ========================================================================= */}
+          <aside
+            className={`w-64 md:w-60 shrink-0 bg-white border-r border-[#EAE5DC] flex flex-col justify-between h-full z-50 print:hidden transition-transform duration-300 ease-in-out
+              fixed inset-y-0 left-0 md:static md:translate-x-0
+              ${isMobileSidebarOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full md:translate-x-0"}
+            `}
+          >
             <div className="p-3.5 flex flex-col h-full overflow-y-auto">
-              {/* Logo ứng dụng */}
-              <div className="flex items-center gap-2 pb-3 border-b border-[#F0EBE1]">
-                <div className="w-8 h-8 rounded-lg bg-[#F6EDE8] border border-[#E8D7CF] flex items-center justify-center text-[#C86446] shrink-0">
-                  <Palette className="w-4 h-4" />
-                </div>
-                <div className="min-w-0">
-                  <div className="flex items-center gap-1">
-                    <span className="font-serif font-bold text-[#1E1C1A] text-sm truncate">
-                      ArtProgress
-                    </span>
-                    <span className="text-[8px] bg-[#F6EDE8] text-[#C86446] font-semibold px-1 rounded-full uppercase shrink-0">
-                      AI
-                    </span>
+              {/* Logo ứng dụng & Nút đóng trên Mobile */}
+              <div className="flex items-center justify-between pb-3 border-b border-[#F0EBE1]">
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className="w-8 h-8 rounded-lg bg-[#F6EDE8] border border-[#E8D7CF] flex items-center justify-center text-[#C86446] shrink-0">
+                    <Palette className="w-4 h-4" />
                   </div>
-                  <p className="text-[10px] text-stone-400 truncate">
-                    Mĩ thuật tiến bộ số &bull; v{APP_VERSION}
-                  </p>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1">
+                      <span className="font-serif font-bold text-[#1E1C1A] text-sm truncate">
+                        ArtProgress
+                      </span>
+                      <span className="text-[8px] bg-[#F6EDE8] text-[#C86446] font-semibold px-1 rounded-full uppercase shrink-0">
+                        AI
+                      </span>
+                    </div>
+                    <p className="text-[10px] text-stone-400 truncate">
+                      Mĩ thuật tiến bộ số &bull; v{APP_VERSION}
+                    </p>
+                  </div>
                 </div>
+
+                {/* Nút đóng Sidebar trên Mobile */}
+                <button
+                  type="button"
+                  onClick={() => setIsMobileSidebarOpen(false)}
+                  className="md:hidden w-8 h-8 rounded-lg flex items-center justify-center text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors cursor-pointer shrink-0 ml-1"
+                  title="Đóng thanh điều hướng"
+                >
+                  <X className="w-4 h-4" />
+                </button>
               </div>
 
               {/* =======================================================================
@@ -1084,7 +1122,10 @@ export default function DashboardPage() {
                 ) : (
                   <button
                     type="button"
-                    onClick={() => setCurrentNav("portfolio")}
+                    onClick={() => {
+                      setCurrentNav("portfolio");
+                      setIsMobileSidebarOpen(false);
+                    }}
                     className={`w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-xs font-medium transition-all cursor-pointer ${activeNav === "portfolio"
                         ? "bg-[#F5F2EB] text-[#1E1C1A] font-semibold"
                         : "text-stone-600 hover:bg-[#FAF8F5] hover:text-stone-900"
@@ -1102,7 +1143,10 @@ export default function DashboardPage() {
 
                 <button
                   type="button"
-                  onClick={() => setCurrentNav("topics")}
+                  onClick={() => {
+                    setCurrentNav("topics");
+                    setIsMobileSidebarOpen(false);
+                  }}
                   className={`w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-xs font-medium transition-all cursor-pointer ${activeNav === "topics"
                       ? "bg-[#F5F2EB] text-[#1E1C1A] font-semibold"
                       : "text-stone-600 hover:bg-[#FAF8F5] hover:text-stone-900"
@@ -1120,7 +1164,10 @@ export default function DashboardPage() {
                 {/* Rubric theo Yêu cầu cần đạt của bài học */}
                 <button
                   type="button"
-                  onClick={() => setCurrentNav("rubric")}
+                  onClick={() => {
+                    setCurrentNav("rubric");
+                    setIsMobileSidebarOpen(false);
+                  }}
                   className={`w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-xs font-medium transition-all cursor-pointer ${activeNav === "rubric"
                       ? "bg-[#F5F2EB] text-[#1E1C1A] font-semibold"
                       : "text-stone-600 hover:bg-[#FAF8F5] hover:text-stone-900"
@@ -1137,7 +1184,10 @@ export default function DashboardPage() {
 
                 <button
                   type="button"
-                  onClick={() => setCurrentNav("gallery")}
+                  onClick={() => {
+                    setCurrentNav("gallery");
+                    setIsMobileSidebarOpen(false);
+                  }}
                   className={`w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-xs font-medium transition-all cursor-pointer ${activeNav === "gallery"
                       ? "bg-[#F5F2EB] text-[#1E1C1A] font-semibold"
                       : "text-stone-600 hover:bg-[#FAF8F5] hover:text-stone-900"
@@ -1162,6 +1212,7 @@ export default function DashboardPage() {
                     onClick={() => {
                       setIsRevisionUpload(false);
                       setIsUploadModalOpen(true);
+                      setIsMobileSidebarOpen(false);
                     }}
                     className={`w-full py-2 px-2.5 rounded-lg text-xs font-medium shadow-xs flex items-center justify-center gap-1.5 transition-all ${currentGradeTopics.some((t) => t.isActive)
                         ? "bg-[#1E1C1A] hover:bg-[#C86446] text-[#FAF8F5] cursor-pointer"
@@ -1248,15 +1299,103 @@ export default function DashboardPage() {
           {/* =========================================================================
           2. NỘI DUNG CHÍNH (FULL VIEW HOẶC CẤU TRÚC WORKSPACE VỚI BẢNG TRƯỢT DRAWER)
       ========================================================================= */}
-          <main className="flex-1 flex flex-col h-full overflow-hidden print:hidden">
+          <main className="flex-1 flex flex-col h-full overflow-hidden print:hidden min-w-0">
+            {/* THANH TOP HEADER DÀNH RIÊNG CHO MOBILE (< md) */}
+            <header className="md:hidden h-14 bg-white border-b border-[#EAE5DC] px-3.5 flex items-center justify-between z-20 shrink-0 shadow-2xs">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <button
+                  type="button"
+                  onClick={() => setIsMobileSidebarOpen(true)}
+                  className="w-9 h-9 rounded-xl bg-[#FAF8F5] border border-[#EAE5DC] hover:border-[#C86446] text-stone-700 flex items-center justify-center active:scale-95 transition-all cursor-pointer shrink-0"
+                  title="Mở menu điều hướng"
+                >
+                  <Menu className="w-4 h-4" />
+                </button>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-serif font-bold text-[#1E1C1A] text-xs truncate">
+                      ArtProgress
+                    </span>
+                    <span className="text-[8.5px] font-bold text-[#C86446] bg-[#F6EDE8] px-1.5 py-0.2 rounded-full border border-[#E8D7CF] truncate">
+                      {role === "student" ? selectedClass.name : role === "teacher" ? `Khối ${selectedGrade} • ${selectedClass.name}` : "Triển lãm"}
+                    </span>
+                  </div>
+                  <p className="text-[9.5px] text-stone-400 truncate font-sans">
+                    {activeNav === "portfolio" ? "Hồ sơ bài vẽ" : activeNav === "topics" ? "Chủ đề bài học" : activeNav === "rubric" ? "Rubric bài học" : "Phòng triển lãm"}
+                  </p>
+                </div>
+              </div>
+
+              {/* Tác vụ nhanh bên phải mobile header */}
+              <div className="flex items-center gap-1.5 shrink-0">
+                {role === "student" && (
+                  <button
+                    type="button"
+                    disabled={currentGradeTopics.length === 0 || !currentGradeTopics.some((t) => t.isActive)}
+                    onClick={() => {
+                      setIsRevisionUpload(false);
+                      setIsUploadModalOpen(true);
+                    }}
+                    className={`py-1.5 px-2.5 rounded-lg text-xs font-semibold shadow-xs flex items-center gap-1 transition-all ${
+                      currentGradeTopics.some((t) => t.isActive)
+                        ? "bg-[#C86446] text-white active:scale-95 cursor-pointer"
+                        : "bg-stone-200 text-stone-400 cursor-not-allowed"
+                    }`}
+                    title="Nộp bài vẽ mới"
+                  >
+                    <Upload className="w-3.5 h-3.5" />
+                    <span className="text-[11px] font-bold">Nộp bài</span>
+                  </button>
+                )}
+
+                {role === "teacher" && activeNav === "topics" && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setNewTopicGrade(selectedGrade);
+                      setIsCreateTopicModalOpen(true);
+                    }}
+                    className="py-1.5 px-2.5 bg-[#C86446] text-white text-[11px] font-bold rounded-lg shadow-xs flex items-center gap-1 cursor-pointer active:scale-95"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Tạo</span>
+                  </button>
+                )}
+
+                {role === "teacher" && activeNav === "portfolio" && (
+                  <button
+                    type="button"
+                    onClick={() => setIsStudentRosterModalOpen(true)}
+                    className="py-1.5 px-2 rounded-lg bg-[#FAF8F5] border border-[#EAE5DC] text-[#C86446] text-[11px] font-bold shadow-2xs flex items-center gap-1 active:scale-95 cursor-pointer"
+                    title="Quản lý học sinh"
+                  >
+                    <Users className="w-3.5 h-3.5" />
+                    <span>HS ({classStudents.length})</span>
+                  </button>
+                )}
+
+                {/* Đổi góc làm việc nhanh giữa Bài vẽ & Chủ đề */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (activeNav === "portfolio") setCurrentNav("topics");
+                    else setCurrentNav("portfolio");
+                  }}
+                  className="w-8 h-8 rounded-lg bg-[#FAF8F5] border border-[#EAE5DC] text-stone-600 hover:text-[#C86446] flex items-center justify-center text-[10px] active:scale-95 transition-all cursor-pointer"
+                  title="Chuyển chế độ xem"
+                >
+                  {activeNav === "portfolio" ? <BookOpen className="w-3.5 h-3.5 text-[#C86446]" /> : <Layers className="w-3.5 h-3.5 text-[#C86446]" />}
+                </button>
+              </div>
+            </header>
             {/* VIEW 1: CHỦ ĐỀ BÀI HỌC (CÓ NÚT ĐÓNG / MỞ NỘP BÀI) */}
             {activeNav === "topics" && (
-              <div className="flex-1 p-8 overflow-y-auto space-y-6 max-w-5xl mx-auto w-full">
-                <div className="flex items-center justify-between border-b border-[#EAE5DC] pb-4">
+              <div className="flex-1 p-3.5 sm:p-6 md:p-8 overflow-y-auto space-y-4 sm:space-y-6 max-w-5xl mx-auto w-full">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#EAE5DC] pb-4">
                   <div>
-                    <h1 className="font-serif text-2xl font-bold text-[#1E1C1A] flex items-center gap-2">
-                      <BookOpen className="w-6 h-6 text-[#C86446]" />
-                      Chủ Đề & Nhiệm Vụ Bài Học Mĩ Thuật — Khối {selectedGrade}
+                    <h1 className="font-serif text-xl sm:text-2xl font-bold text-[#1E1C1A] flex items-center gap-2">
+                      <BookOpen className="w-5 h-5 sm:w-6 sm:h-6 text-[#C86446]" />
+                      <span>Chủ Đề & Nhiệm Vụ Bài Học Mĩ Thuật — Khối {selectedGrade}</span>
                     </h1>
                     <p className="text-xs text-stone-500 mt-1">
                       Quản lý các chủ đề thực hành theo từng khối lớp và trạng thái đóng/mở nhận bài nộp
@@ -1270,7 +1409,7 @@ export default function DashboardPage() {
                         setNewTopicGrade(selectedGrade);
                         setIsCreateTopicModalOpen(true);
                       }}
-                      className="px-4 py-2 bg-[#1E1C1A] text-white text-xs font-medium rounded-xl hover:bg-[#C86446] transition-colors flex items-center gap-2 shadow-xs cursor-pointer"
+                      className="px-3.5 py-2 bg-[#1E1C1A] text-white text-xs font-medium rounded-xl hover:bg-[#C86446] transition-colors flex items-center gap-2 shadow-xs cursor-pointer self-start sm:self-auto shrink-0"
                     >
                       <Plus className="w-4 h-4" />
                       <span>Tạo chủ đề & Thiết lập Rubric</span>
@@ -1280,16 +1419,16 @@ export default function DashboardPage() {
 
                 {/* Thanh chuyển nhanh Khối lớp (Chỉ hiển thị cho Giáo viên) */}
                 {role === "teacher" && (
-                  <div className="flex flex-wrap items-center justify-between gap-3 bg-white p-3.5 rounded-2xl border border-[#EAE5DC] shadow-xs">
-                    <div className="flex items-center gap-2.5">
-                      <span className="text-xs font-bold text-stone-700">Khối lớp:</span>
-                      <div className="flex gap-1.5 bg-[#FAF8F5] p-1 rounded-xl border border-[#EAE5DC]">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3 sm:p-3.5 rounded-2xl border border-[#EAE5DC] shadow-xs">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <span className="text-xs font-bold text-stone-700 shrink-0">Khối lớp:</span>
+                      <div className="flex gap-1.5 bg-[#FAF8F5] p-1 rounded-xl border border-[#EAE5DC] overflow-x-auto no-scrollbar">
                         {[6, 7, 8, 9].map((gr) => (
                           <button
                             key={gr}
                             type="button"
                             onClick={() => handleSelectGrade(gr)}
-                            className={`px-3.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${selectedGrade === gr
+                            className={`px-3 sm:px-3.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer shrink-0 ${selectedGrade === gr
                                 ? "bg-[#C86446] text-white shadow-xs"
                                 : "text-stone-600 hover:bg-stone-200/60"
                               }`}
@@ -1300,15 +1439,15 @@ export default function DashboardPage() {
                       </div>
                     </div>
 
-                    <div className="text-xs text-stone-500">
+                    <div className="text-[11px] sm:text-xs text-stone-500">
                       Đang hiển thị <strong>{currentGradeTopics.length} chủ đề</strong> áp dụng cho <strong className="text-[#C86446]">Khối {selectedGrade}</strong>
                     </div>
                   </div>
                 )}
 
-                <div className="grid grid-cols-1 gap-6">
+                <div className="grid grid-cols-1 gap-4 sm:gap-6">
                   {currentGradeTopics.length === 0 ? (
-                    <div className="text-center py-12 bg-white rounded-2xl border border-dashed border-stone-300 p-8 space-y-3">
+                    <div className="text-center py-10 sm:py-12 bg-white rounded-2xl border border-dashed border-stone-300 p-6 sm:p-8 space-y-3">
                       <p className="text-sm text-stone-500">Khối {selectedGrade} hiện chưa có chủ đề bài học nào.</p>
                       {role === "teacher" && (
                         <button
@@ -1330,33 +1469,33 @@ export default function DashboardPage() {
                       return (
                         <div
                           key={t.id}
-                          className="bg-white rounded-2xl p-6 border border-[#EAE5DC] shadow-xs space-y-4 hover:border-stone-300 transition-all"
+                          className="bg-white rounded-2xl p-4 sm:p-6 border border-[#EAE5DC] shadow-xs space-y-4 hover:border-stone-300 transition-all"
                         >
-                          <div className="flex items-start justify-between gap-4">
-                            <div>
-                              <div className="flex items-center gap-2">
+                          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <div className="flex flex-wrap items-center gap-2">
                                 <span className="text-[10px] bg-[#F6EDE8] text-[#C86446] font-bold px-2 py-0.5 rounded-full uppercase">
                                   Học kỳ I • Khối {t.grade || selectedGrade} • {selectedClass.name}
                                 </span>
                                 <span className="text-xs text-stone-400">Năm học 2025–2026</span>
                               </div>
-                              <h2 className="font-serif text-xl font-bold text-[#1E1C1A] mt-2">
+                              <h2 className="font-serif text-lg sm:text-xl font-bold text-[#1E1C1A] mt-2">
                                 {t.title}
                               </h2>
-                              <p className="text-sm text-stone-600 mt-1 leading-relaxed">
+                              <p className="text-xs sm:text-sm text-stone-600 mt-1 leading-relaxed">
                                 {t.description}
                               </p>
                             </div>
 
                             {/* KHỐI NÚT ĐÓNG / MỞ NỘP BÀI VÀ XÓA CHỦ ĐỀ DÀNH CHO GIÁO VIÊN */}
-                            <div className="shrink-0 flex items-center gap-2.5">
+                            <div className="shrink-0 flex items-center gap-2 self-start sm:self-auto">
                               {t.isActive ? (
-                                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-800 text-xs font-semibold rounded-full border border-emerald-200">
+                                <span className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 bg-emerald-50 text-emerald-800 text-[11px] sm:text-xs font-semibold rounded-full border border-emerald-200">
                                   <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                                   Đang mở nộp bài
                                 </span>
                               ) : (
-                                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-stone-100 text-stone-600 text-xs font-semibold rounded-full border border-stone-200">
+                                <span className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 bg-stone-100 text-stone-600 text-[11px] sm:text-xs font-semibold rounded-full border border-stone-200">
                                   <span className="w-2 h-2 rounded-full bg-stone-400"></span>
                                   Đã đóng nộp bài
                                 </span>
@@ -1367,21 +1506,21 @@ export default function DashboardPage() {
                                   <button
                                     type="button"
                                     onClick={() => handleToggleTopicStatus(t.id)}
-                                    className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer border ${t.isActive
+                                    className={`px-2.5 sm:px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer border ${t.isActive
                                         ? "bg-stone-50 hover:bg-stone-100 text-stone-700 border-stone-300"
                                         : "bg-[#4F6B58] hover:bg-[#3D5344] text-white border-[#4F6B58]"
                                       }`}
                                   >
-                                    {t.isActive ? "Đóng nộp bài" : "Mở nộp bài"}
+                                    {t.isActive ? "Đóng nộp" : "Mở nộp"}
                                   </button>
                                   <button
                                     type="button"
                                     onClick={() => handleDeleteTopic(t.id)}
-                                    className="px-2.5 py-1 rounded-lg text-xs font-semibold text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition-all cursor-pointer flex items-center gap-1"
+                                    className="px-2 py-1 rounded-lg text-xs font-semibold text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition-all cursor-pointer flex items-center gap-1"
                                     title="Xóa chủ đề này"
                                   >
                                     <Trash2 className="w-3.5 h-3.5" />
-                                    <span>Xóa</span>
+                                    <span className="hidden sm:inline">Xóa</span>
                                   </button>
                                 </div>
                               )}
@@ -1392,9 +1531,9 @@ export default function DashboardPage() {
                             <h3 className="text-xs font-bold text-stone-700 uppercase tracking-wider mb-2">
                               Yêu cầu cần đạt cốt lõi:
                             </h3>
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3">
                               {t.requirements.map((req, idx) => (
-                                <div key={idx} className="p-3 bg-[#FAF8F5] rounded-xl border border-[#EAE5DC] text-xs text-stone-600 leading-relaxed flex gap-2">
+                                <div key={idx} className="p-2.5 sm:p-3 bg-[#FAF8F5] rounded-xl border border-[#EAE5DC] text-xs text-stone-600 leading-relaxed flex gap-2">
                                   <span className="font-bold text-[#C86446]">{idx + 1}.</span>
                                   <span>{req}</span>
                                 </div>
@@ -1402,8 +1541,8 @@ export default function DashboardPage() {
                             </div>
                           </div>
 
-                          <div className="pt-2 flex items-center justify-between text-xs text-stone-500">
-                            <div className="flex items-center gap-4">
+                          <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs text-stone-500">
+                            <div className="flex flex-wrap items-center gap-3 text-[11px] sm:text-xs">
                               <span className="flex items-center gap-1.5">
                                 <Layers className="w-3.5 h-3.5 text-stone-400" />
                                 Đã có {topicArtworkCount} học sinh {selectedClass.name} nộp bài
@@ -1422,9 +1561,9 @@ export default function DashboardPage() {
                                   setTopicFilter(t.id);
                                   setCurrentNav("portfolio");
                                 }}
-                                className="text-[#C86446] font-semibold hover:underline flex items-center gap-1 cursor-pointer"
+                                className="text-[#C86446] font-semibold hover:underline flex items-center gap-1 cursor-pointer self-start sm:self-auto"
                               >
-                                <span>Xem hồ sơ bài nộp của {selectedClass.name}</span>
+                                <span>Xem hồ sơ bài nộp {selectedClass.name}</span>
                                 <ChevronRight className="w-3.5 h-3.5" />
                               </button>
                             )}
@@ -1438,12 +1577,12 @@ export default function DashboardPage() {
 
             {/* VIEW 2: RUBRIC THEO YÊU CẦU CẦN ĐẠT CỦA BÀI HỌC */}
             {activeNav === "rubric" && (
-              <div className="flex-1 p-8 overflow-y-auto space-y-6 max-w-5xl mx-auto w-full">
-                <div className="flex items-center justify-between border-b border-[#EAE5DC] pb-4">
+              <div className="flex-1 p-3.5 sm:p-6 md:p-8 overflow-y-auto space-y-4 sm:space-y-6 max-w-5xl mx-auto w-full">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#EAE5DC] pb-4">
                   <div>
-                    <h1 className="font-serif text-2xl font-bold text-[#1E1C1A] flex items-center gap-2">
-                      <Award className="w-6 h-6 text-[#C86446]" />
-                      Rubric Đánh Giá Theo Yêu Cầu Cần Đạt Bài Học
+                    <h1 className="font-serif text-xl sm:text-2xl font-bold text-[#1E1C1A] flex items-center gap-2">
+                      <Award className="w-5 h-5 sm:w-6 sm:h-6 text-[#C86446]" />
+                      <span>Rubric Đánh Giá Theo Yêu Cầu Cần Đạt Bài Học</span>
                     </h1>
                     <p className="text-xs text-stone-500 mt-1">
                       Bộ thước đo sư phạm được thiết lập riêng cho từng chủ đề bài học để làm căn cứ phân tích AI
@@ -1452,7 +1591,7 @@ export default function DashboardPage() {
 
                   {/* Hộp chọn chủ đề */}
                   {selectedTopic && (
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <span className="text-xs text-stone-500 font-medium">Chủ đề (Khối {selectedGrade}):</span>
                       <select
                         value={selectedTopic.id}
@@ -1460,7 +1599,7 @@ export default function DashboardPage() {
                           const tp = currentGradeTopics.find((t) => t.id === e.target.value);
                           if (tp) setSelectedTopic(tp);
                         }}
-                        className="text-xs bg-white border border-[#EAE5DC] rounded-xl px-3 py-1.5 font-medium text-stone-800 focus:outline-none cursor-pointer"
+                        className="text-xs bg-white border border-[#EAE5DC] rounded-xl px-2.5 sm:px-3 py-1.5 font-medium text-stone-800 focus:outline-none cursor-pointer max-w-[200px] truncate"
                       >
                         {currentGradeTopics.map((t) => (
                           <option key={t.id} value={t.id}>
@@ -1468,7 +1607,7 @@ export default function DashboardPage() {
                           </option>
                         ))}
                       </select>
-                      <div className="text-xs font-semibold px-3 py-1 bg-[#F5F2EB] text-[#C86446] rounded-full border border-[#E2DBD0]">
+                      <div className="text-xs font-semibold px-2.5 sm:px-3 py-1 bg-[#F5F2EB] text-[#C86446] rounded-full border border-[#E2DBD0]">
                         Tổng: 100%
                       </div>
                       {role === "teacher" && (
@@ -1479,7 +1618,7 @@ export default function DashboardPage() {
                           title="Xóa chủ đề bài học này"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
-                          <span>Xóa chủ đề</span>
+                          <span className="hidden sm:inline">Xóa chủ đề</span>
                         </button>
                       )}
                     </div>
@@ -1487,8 +1626,8 @@ export default function DashboardPage() {
                 </div>
 
                 {!selectedTopic ? (
-                  <div className="text-center py-16 bg-white rounded-3xl border border-dashed border-[#EAE5DC] space-y-3">
-                    <Award className="w-12 h-12 text-stone-300 mx-auto" />
+                  <div className="text-center py-12 sm:py-16 bg-white rounded-3xl border border-dashed border-[#EAE5DC] p-6 space-y-3">
+                    <Award className="w-10 h-10 sm:w-12 sm:h-12 text-stone-300 mx-auto" />
                     <h3 className="text-base font-bold text-stone-700">Chưa có chủ đề bài học nào ở Khối {selectedGrade}</h3>
                     <p className="text-xs text-stone-500 max-w-md mx-auto">
                       {role === "teacher"
@@ -1507,33 +1646,33 @@ export default function DashboardPage() {
                     )}
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                     {selectedTopic.rubric.map((r, index) => (
                       <div
                         key={r.id}
-                        className="bg-white rounded-2xl p-6 border border-[#EAE5DC] shadow-xs space-y-3 relative overflow-hidden"
+                        className="bg-white rounded-2xl p-4 sm:p-6 border border-[#EAE5DC] shadow-xs space-y-3 relative overflow-hidden"
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             <span className="w-6 h-6 rounded-lg bg-[#F6EDE8] text-[#C86446] text-xs font-bold flex items-center justify-center">
                               0{index + 1}
                             </span>
-                            <h3 className="font-serif text-base font-bold text-[#1E1C1A]">
+                            <h3 className="font-serif text-sm sm:text-base font-bold text-[#1E1C1A]">
                               {r.name}
                             </h3>
                           </div>
-                          <span className="font-serif text-lg font-bold text-[#C86446]">
+                          <span className="font-serif text-base sm:text-lg font-bold text-[#C86446]">
                             {r.weight}%
                           </span>
                         </div>
 
-                        <p className="text-xs text-stone-600 leading-relaxed bg-[#FAF8F5] p-3 rounded-xl border border-[#EAE5DC]">
+                        <p className="text-xs text-stone-600 leading-relaxed bg-[#FAF8F5] p-2.5 sm:p-3 rounded-xl border border-[#EAE5DC]">
                           <strong className="text-stone-800">Yêu cầu cần đạt:</strong> {r.description}
                         </p>
 
                         <div className="space-y-1.5 pt-2 text-[11px] text-stone-500">
                           <p className="font-medium text-stone-700">Mức độ đạt được của học sinh:</p>
-                          <div className="grid grid-cols-4 gap-1.5 text-center font-medium pt-1">
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 text-center font-medium pt-1 text-[11px]">
                             <span className="p-1.5 rounded-lg bg-amber-50 text-amber-800 border border-amber-200">Chưa đạt</span>
                             <span className="p-1.5 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200">Đạt</span>
                             <span className="p-1.5 rounded-lg bg-blue-50 text-blue-800 border border-blue-200">Tốt</span>
@@ -1657,7 +1796,7 @@ export default function DashboardPage() {
             {activeNav === "portfolio" && (
               <div className="flex-1 flex overflow-hidden h-full relative">
                 {/* CỘT 1: DANH SÁCH BÀI VẼ THEO LỚP ĐANG CHỌN (w-64) */}
-                <section className="w-64 shrink-0 border-r border-[#EAE5DC] bg-white flex flex-col h-full z-10">
+                <section className={`${mobilePortfolioView === "detail" ? "hidden md:flex" : "flex"} w-full md:w-64 lg:w-72 shrink-0 border-r border-[#EAE5DC] bg-white flex-col h-full z-10`}>
                   <div className="p-3 border-b border-[#F0EBE1] space-y-2 shrink-0">
                     <div className="flex items-center justify-between">
                       <h2 className="font-serif text-xs font-bold text-[#1E1C1A] flex items-center gap-1.5">
@@ -1727,7 +1866,10 @@ export default function DashboardPage() {
                         return (
                           <div
                             key={art.id}
-                            onClick={() => setSelectedArtwork(art)}
+                            onClick={() => {
+                              setSelectedArtwork(art);
+                              setMobilePortfolioView("detail");
+                            }}
                             className={`group p-2 rounded-xl border transition-all cursor-pointer flex items-center gap-2.5 relative ${isSelected
                                 ? "bg-[#FAF8F5] border-[#C86446] ring-1 ring-[#C86446]/20 shadow-xs"
                                 : "bg-white border-[#EAE5DC] hover:border-stone-300"
@@ -1790,43 +1932,50 @@ export default function DashboardPage() {
                 </section>
 
                 {/* VÙNG LÀM VIỆC CHÍNH */}
-                <div className="flex-1 flex flex-col h-full overflow-hidden">
-                  {/* =======================================================================
-                  THANH HEADER BÀI VẼ: ĐÃ GIẢI QUYẾT TRIỆT ĐỂ LỖI TRÀN LAYOUT
-                  - Tách biệt rõ ràng phạm vi tác phẩm cá nhân
-                  - Chỉ giữ 2-3 nút bấm tinh gọn, không tranh chấp cấp bậc
-              ======================================================================= */}
-                  <div className="h-13 shrink-0 bg-white border-b border-[#EAE5DC] px-4 md:px-6 flex items-center justify-between gap-3 z-10 shadow-xs overflow-hidden">
-                    {/* BÊN TRÁI: THÔNG TIN TÁC PHẨM & HUY HIỆU TIẾN TRÌNH CÁ NHÂN */}
-                    <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                <div className={`${mobilePortfolioView === "list" ? "hidden md:flex" : "flex"} flex-1 flex-col h-full overflow-hidden min-w-0`}>
+                  {/* THANH HEADER BÀI VẼ: TINH GỌN, CO GIÃN THÔNG MINH */}
+                  <div className="h-13 shrink-0 bg-white border-b border-[#EAE5DC] px-3 sm:px-4 md:px-6 flex items-center justify-between gap-2 sm:gap-3 z-10 shadow-xs overflow-hidden">
+                    {/* BÊN TRÁI: NÚT QUAY LẠI TRÊN MOBILE + THÔNG TIN TÁC PHẨM & HUY HIỆU */}
+                    <div className="flex items-center gap-2 sm:gap-2.5 min-w-0 flex-1">
+                      {/* Nút quay lại danh sách bài vẽ trên mobile */}
+                      <button
+                        type="button"
+                        onClick={() => setMobilePortfolioView("list")}
+                        className="md:hidden flex items-center gap-1 text-xs font-semibold text-stone-600 hover:text-[#C86446] px-2 py-1.5 rounded-lg bg-[#FAF8F5] border border-[#EAE5DC] shrink-0 active:scale-95 cursor-pointer"
+                        title="Quay lại danh sách bài vẽ"
+                      >
+                        <ArrowLeft className="w-3.5 h-3.5" />
+                        <span className="text-[11px]">Danh sách</span>
+                      </button>
+
                       {selectedArtwork ? (
                         <>
                           <h2
-                            className="font-serif font-bold text-sm text-[#1E1C1A] truncate max-w-[160px] sm:max-w-[220px] md:max-w-xs shrink"
+                            className="font-serif font-bold text-xs sm:text-sm text-[#1E1C1A] truncate max-w-[120px] sm:max-w-[200px] md:max-w-xs shrink"
                             title={selectedArtwork.title}
                           >
                             {selectedArtwork.title}
                           </h2>
 
-                          <span className="text-[11px] bg-[#F5F2EB] text-stone-700 font-medium px-2 py-0.5 rounded-full shrink-0">
-                            HS: {selectedArtwork.studentName} ({selectedClass.name})
+                          <span className="text-[10px] sm:text-[11px] bg-[#F5F2EB] text-stone-700 font-medium px-2 py-0.5 rounded-full shrink-0">
+                            HS: {selectedArtwork.studentName}
                           </span>
 
                           {/* Huy hiệu tiến trình thực tế của bài vẽ */}
                           {selectedArtwork.revisedImageUrl ? (
-                            <span className="text-[10px] bg-emerald-50 text-emerald-800 font-semibold px-2 py-0.5 rounded-full border border-emerald-200 shrink-0 flex items-center gap-1">
+                            <span className="text-[10px] bg-emerald-50 text-emerald-800 font-semibold px-2 py-0.5 rounded-full border border-emerald-200 shrink-0 hidden sm:flex items-center gap-1">
                               <Sliders className="w-2.5 h-2.5" />
                               <span>Bản hoàn thiện</span>
                             </span>
                           ) : (
-                            <span className="text-[10px] bg-amber-50 text-amber-800 font-semibold px-2 py-0.5 rounded-full border border-amber-200 shrink-0">
+                            <span className="text-[10px] bg-amber-50 text-amber-800 font-semibold px-2 py-0.5 rounded-full border border-amber-200 shrink-0 hidden sm:inline-block">
                               Bản phác thảo
                             </span>
                           )}
 
                           {/* Biểu tượng triển lãm tinh tế */}
                           {selectedArtwork.isPublic && (
-                            <span className="text-emerald-700 shrink-0" title="Tác phẩm đang được trưng bày tại Phòng Triển Lãm">
+                            <span className="text-emerald-700 shrink-0 hidden sm:inline-flex" title="Tác phẩm đang được trưng bày tại Phòng Triển Lãm">
                               <Globe className="w-3.5 h-3.5" />
                             </span>
                           )}
@@ -1836,14 +1985,14 @@ export default function DashboardPage() {
                       )}
                     </div>
 
-                    {/* BÊN PHẢI: CHỈ 2 NÚT THAO TÁC CHIẾN LƯỢC, HOÀN TOÀN KHÔNG BỊ TRÀN */}
-                    <div className="flex items-center gap-2 shrink-0">
+                    {/* BÊN PHẢI: NÚT THAO TÁC CHIẾN LƯỢC, CO GIÃN THEO MÀN HÌNH */}
+                    <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
                       {/* 1. NÚT XUẤT BẢN IN BÁO CÁO TIẾN BỘ SƯ PHẠM */}
                       {selectedArtwork && (
                         <button
                           type="button"
                           onClick={() => setIsReportModalOpen(true)}
-                          className="px-2.5 py-1.5 rounded-lg text-xs font-medium border border-[#E8D7CF] bg-white hover:bg-[#FAF8F5] text-stone-700 hover:text-[#C86446] flex items-center gap-1.5 shadow-xs cursor-pointer transition-colors"
+                          className="px-2 sm:px-2.5 py-1.5 rounded-lg text-xs font-medium border border-[#E8D7CF] bg-white hover:bg-[#FAF8F5] text-stone-700 hover:text-[#C86446] flex items-center gap-1 sm:gap-1.5 shadow-xs cursor-pointer transition-colors"
                           title="Xuất bản in báo cáo tiến bộ sư phạm khổ A4 (Minh chứng Ngày hội sáng tạo 2026)"
                         >
                           <Printer className="w-3.5 h-3.5 text-[#C86446]" />
@@ -1867,14 +2016,15 @@ export default function DashboardPage() {
                                 setIsRevisionUpload(true);
                                 setIsUploadModalOpen(true);
                               }}
-                              className={`px-3 py-1.5 rounded-lg text-xs font-medium shadow-xs flex items-center gap-1.5 transition-colors ${isTopicActive
+                              className={`px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-medium shadow-xs flex items-center gap-1 sm:gap-1.5 transition-colors ${isTopicActive
                                   ? "bg-[#4F6B58] hover:bg-[#3D5344] text-white cursor-pointer"
                                   : "bg-stone-200 text-stone-400 cursor-not-allowed"
                                 }`}
                               title={!artworkTopic ? "Chưa có chủ đề bài học" : !isTopicActive ? "Chủ đề này đã đóng nộp bài" : ""}
                             >
                               <Upload className="w-3.5 h-3.5" />
-                              <span>Nộp bản sửa</span>
+                              <span className="hidden sm:inline">Nộp bản sửa</span>
+                              <span className="sm:hidden">Sửa</span>
                             </button>
                           );
                         })()}
@@ -1888,7 +2038,7 @@ export default function DashboardPage() {
                           <button
                             type="button"
                             onClick={() => handleDeleteArtwork(selectedArtwork.id)}
-                            className="px-2.5 py-1.5 rounded-lg text-xs font-medium border border-rose-200 bg-white hover:bg-rose-50 text-rose-600 flex items-center gap-1 shadow-xs cursor-pointer transition-colors"
+                            className="px-2 sm:px-2.5 py-1.5 rounded-lg text-xs font-medium border border-rose-200 bg-white hover:bg-rose-50 text-rose-600 flex items-center gap-1 shadow-xs cursor-pointer transition-colors"
                             title="Xóa tác phẩm này"
                           >
                             <Trash2 className="w-3.5 h-3.5 text-rose-500" />
@@ -1900,13 +2050,14 @@ export default function DashboardPage() {
                       <button
                         type="button"
                         onClick={() => setIsEvaluationDrawerOpen(!isEvaluationDrawerOpen)}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold border flex items-center gap-1.5 transition-all shadow-xs cursor-pointer ${isEvaluationDrawerOpen
+                        className={`px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold border flex items-center gap-1 sm:gap-1.5 transition-all shadow-xs cursor-pointer ${isEvaluationDrawerOpen
                             ? "bg-[#C86446] text-white border-[#C86446]"
                             : "bg-white text-stone-700 border-[#E8D7CF] hover:bg-[#F6EDE8] hover:text-[#C86446]"
                           }`}
                       >
                         <FileText className="w-3.5 h-3.5" />
-                        <span>{isEvaluationDrawerOpen ? "Thu gọn" : "Bảng chấm điểm"}</span>
+                        <span className="hidden sm:inline">{isEvaluationDrawerOpen ? "Thu gọn" : "Bảng chấm điểm"}</span>
+                        <span className="sm:hidden">{isEvaluationDrawerOpen ? "Đóng" : "Điểm & Lời phê"}</span>
                         {selectedArtwork?.feedback?.status === "pending_moderation" && (
                           <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
                         )}
@@ -1915,27 +2066,29 @@ export default function DashboardPage() {
                   </div>
 
                   {/* KHÔNG GIAN QUAN SÁT TÁC PHẨM TRÀN VIỀN RỘNG RÃI */}
-                  <section className="flex-1 p-6 flex flex-col justify-between overflow-hidden bg-[#FAF8F5]">
+                  <section className="flex-1 p-3 sm:p-4 md:p-6 flex flex-col justify-between overflow-y-auto md:overflow-hidden bg-[#FAF8F5]">
                     {selectedArtwork ? (
                       <div className="h-full flex flex-col justify-between max-w-6xl w-full mx-auto">
                         {/* KHUNG TRANH BEFORE - AFTER */}
                         <div className="flex-1 flex flex-col min-h-0">
                           <div className="flex items-center justify-between mb-2 shrink-0">
-                            <h3 className="font-serif text-sm font-bold text-[#1E1C1A] flex items-center gap-2">
-                              <Sliders className="w-4 h-4 text-[#C86446]" />
-                              {selectedArtwork.revisedImageUrl
-                                ? "Không gian quan sát & Đối sánh tác phẩm Before – After"
-                                : "Bản phác thảo ban đầu (Đang đợi bản hoàn thiện chỉnh sửa)"}
+                            <h3 className="font-serif text-xs sm:text-sm font-bold text-[#1E1C1A] flex items-center gap-1.5 sm:gap-2">
+                              <Sliders className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#C86446]" />
+                              <span className="truncate">
+                                {selectedArtwork.revisedImageUrl
+                                  ? "Không gian quan sát & Đối sánh Before – After"
+                                  : "Bản phác thảo ban đầu (Đang đợi bản hoàn thiện)"}
+                              </span>
                             </h3>
                             {selectedArtwork.description && (
-                              <span className="text-xs text-stone-500 italic truncate max-w-md">
+                              <span className="text-[11px] sm:text-xs text-stone-500 italic truncate max-w-[150px] sm:max-w-md">
                                 &ldquo;{selectedArtwork.description}&rdquo;
                               </span>
                             )}
                           </div>
 
                           {/* Khung BeforeAfterViewer tràn viền */}
-                          <div className="flex-1 min-h-0 bg-white rounded-2xl p-4 border border-[#EAE5DC] shadow-xs flex flex-col justify-center">
+                          <div className="flex-1 min-h-[260px] sm:min-h-0 bg-white rounded-2xl p-2 sm:p-4 border border-[#EAE5DC] shadow-xs flex flex-col justify-center">
                             <BeforeAfterViewer
                               initialImageUrl={selectedArtwork.initialImageUrl}
                               revisedImageUrl={selectedArtwork.revisedImageUrl}
@@ -1944,7 +2097,7 @@ export default function DashboardPage() {
                         </div>
 
                         {/* DẢI GHI CHÚ TIẾN BỘ & TỰ ĐÁNH GIÁ Ở CHÂN TRANG */}
-                        <div className="mt-3.5 grid grid-cols-1 md:grid-cols-2 gap-3 shrink-0">
+                        <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-2.5 sm:gap-3 shrink-0">
                           {/* Thẻ trạng thái nhận xét nhanh */}
                           <div className="bg-white rounded-xl p-3 border border-[#EAE5DC] shadow-xs flex items-center justify-between gap-3 text-xs">
                             <div className="min-w-0">
@@ -2056,11 +2209,21 @@ export default function DashboardPage() {
                 </div>
 
                 {/* =========================================================================
-                3. BẢNG TRƯỢT BÊN CẠNH (EVALUATION DRAWER - 384px)
-                Tích hợp cả nút Duyệt Triển Lãm sau khi chấm điểm
+                3. BẢNG TRƯỢT BÊN CẠNH (EVALUATION DRAWER)
+                Mobile / Tablet (< lg): Slide-over sheet kèm backdrop
+                Desktop (lg+): Cột cố định hoặc trượt mượt mà
             ========================================================================= */}
+                {/* Backdrop overlay khi mở bảng trên mobile/tablet */}
+                {isEvaluationDrawerOpen && (
+                  <div
+                    onClick={() => setIsEvaluationDrawerOpen(false)}
+                    className="fixed inset-0 bg-stone-900/40 backdrop-blur-2xs z-35 lg:hidden transition-opacity"
+                    aria-hidden="true"
+                  />
+                )}
+
                 <div
-                  className={`w-96 shrink-0 bg-white border-l border-[#EAE5DC] flex flex-col h-full shadow-2xl transition-all duration-300 z-30 ${isEvaluationDrawerOpen ? "translate-x-0" : "hidden"
+                  className={`fixed inset-y-0 right-0 z-40 w-full sm:w-[420px] lg:static lg:z-30 lg:w-96 shrink-0 bg-white border-l border-[#EAE5DC] flex flex-col h-full shadow-2xl transition-transform duration-300 ${isEvaluationDrawerOpen ? "translate-x-0" : "translate-x-full lg:hidden"
                     }`}
                 >
                   {/* Header của bảng trượt */}
@@ -2451,210 +2614,212 @@ export default function DashboardPage() {
 
           {/* Modal Tạo chủ đề mới kèm thiết lập Rubric */}
           {isCreateTopicModalOpen && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/60 backdrop-blur-xs">
-              <div className="bg-white rounded-3xl max-w-2xl w-full p-6 shadow-2xl border border-stone-100 animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
-                <div className="flex items-center justify-between pb-4 border-b border-stone-100">
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-stone-900/60 backdrop-blur-xs">
+              <div className="bg-white rounded-3xl max-w-2xl w-full p-4 sm:p-6 shadow-2xl border border-stone-100 animate-in fade-in zoom-in-95 duration-200 max-h-[92vh] sm:max-h-[88vh] flex flex-col overflow-hidden">
+                <div className="flex items-center justify-between pb-3 sm:pb-4 border-b border-stone-100 shrink-0">
                   <div>
                     <h3 className="font-serif font-bold text-base text-stone-900 flex items-center gap-2">
                       <BookOpen className="w-5 h-5 text-[#C86446]" />
-                      Tạo Chủ Đề Mới & Thiết Lập Rubric ({selectedClass.name})
+                      <span>Tạo Chủ Đề Mới &amp; Thiết Lập Rubric</span>
                     </h3>
                     <p className="text-xs text-stone-500 mt-0.5">
-                      Thiết lập tiêu chí đánh giá trực tiếp theo Yêu cầu cần đạt riêng của bài học
+                      {selectedClass.name} • Thiết lập tiêu chí đánh giá theo Yêu cầu cần đạt bài học
                     </p>
                   </div>
                   <button
                     type="button"
                     onClick={() => setIsCreateTopicModalOpen(false)}
-                    className="w-8 h-8 rounded-full flex items-center justify-center text-stone-400 hover:text-stone-700 hover:bg-stone-100"
+                    className="w-8 h-8 rounded-full flex items-center justify-center text-stone-400 hover:text-stone-700 hover:bg-stone-100 cursor-pointer transition-colors"
                   >
                     ✕
                   </button>
                 </div>
 
-                <form onSubmit={handleCreateTopic} className="mt-4 space-y-5">
-                  {/* KHỐI 1: THÔNG TIN BÀI HỌC */}
-                  <div className="space-y-3">
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-stone-500">
-                      1. Thông tin chủ đề & Yêu cầu cần đạt
-                    </h4>
+                <form onSubmit={handleCreateTopic} className="flex-1 flex flex-col min-h-0 overflow-hidden">
+                  <div className="flex-1 overflow-y-auto py-3 space-y-4 sm:space-y-5 overscroll-contain pr-1">
+                    {/* KHỐI 1: THÔNG TIN BÀI HỌC */}
+                    <div className="space-y-3">
+                      <h4 className="text-xs font-bold uppercase tracking-wider text-stone-500">
+                        1. Thông tin chủ đề &amp; Yêu cầu cần đạt
+                      </h4>
 
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <label className="block text-xs font-semibold text-stone-700 mb-1">
-                          Áp dụng cho Khối lớp *
-                        </label>
-                        <select
-                          value={newTopicGrade}
-                          onChange={(e) => setNewTopicGrade(Number(e.target.value))}
-                          className="w-full text-xs px-3 py-2 rounded-xl border border-stone-300 focus:outline-none focus:ring-1 focus:ring-[#C86446] bg-white cursor-pointer font-medium"
-                        >
-                          <option value={6}>Khối 6 (Lớp 6A1 - 6A4)</option>
-                          <option value={7}>Khối 7 (Lớp 7A1 - 7A4)</option>
-                          <option value={8}>Khối 8 (Lớp 8A1 - 8A4)</option>
-                          <option value={9}>Khối 9 (Lớp 9A1 - 9A4)</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-xs font-semibold text-stone-700 mb-1">
-                          Lớp thực hiện
-                        </label>
-                        <div className="text-xs px-3 py-2 rounded-xl border border-stone-200 bg-stone-50 text-stone-600 font-medium">
-                          {selectedClass.name} (Khối {selectedGrade})
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-xs font-semibold text-stone-700 mb-1">
+                            Áp dụng cho Khối lớp *
+                          </label>
+                          <select
+                            value={newTopicGrade}
+                            onChange={(e) => setNewTopicGrade(Number(e.target.value))}
+                            className="w-full text-xs px-3 py-2 rounded-xl border border-stone-300 focus:outline-none focus:ring-1 focus:ring-[#C86446] bg-white cursor-pointer font-medium"
+                          >
+                            <option value={6}>Khối 6 (Lớp 6A1 - 6A4)</option>
+                            <option value={7}>Khối 7 (Lớp 7A1 - 7A4)</option>
+                            <option value={8}>Khối 8 (Lớp 8A1 - 8A4)</option>
+                            <option value={9}>Khối 9 (Lớp 9A1 - 9A4)</option>
+                          </select>
                         </div>
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-semibold text-stone-700 mb-1">
-                        Tên chủ đề / Tên bài học
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        placeholder="Ví dụ: Chủ đề 2: Di sản mĩ thuật qua góc nhìn sáng tạo"
-                        value={newTopicTitle}
-                        onChange={(e) => setNewTopicTitle(e.target.value)}
-                        className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-stone-300 focus:outline-none focus:ring-1 focus:ring-[#C86446]"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-semibold text-stone-700 mb-1">
-                        Mô tả nhiệm vụ thực hành
-                      </label>
-                      <textarea
-                        rows={2}
-                        placeholder="Mô tả mục tiêu và nội dung thực hành cho học sinh..."
-                        value={newTopicDesc}
-                        onChange={(e) => setNewTopicDesc(e.target.value)}
-                        className="w-full text-xs px-3.5 py-2 rounded-xl border border-stone-300 focus:outline-none focus:ring-1 focus:ring-[#C86446] resize-none"
-                      />
-                    </div>
-
-                    <div>
-                      <div className="flex items-center justify-between mb-1">
-                        <label className="text-xs font-semibold text-stone-700">
-                          Yêu cầu cần đạt cốt lõi (Mỗi dòng 1 yêu cầu)
-                        </label>
-                        <button
-                          type="button"
-                          onClick={handleGenerateCriteriaFromReqs}
-                          className="text-[11px] text-[#C86446] hover:underline font-semibold flex items-center gap-1 cursor-pointer"
-                        >
-                          <Sparkles className="w-3.5 h-3.5" />
-                          <span>Tự động sinh tiêu chí Rubric từ các dòng này</span>
-                        </button>
-                      </div>
-                      <textarea
-                        rows={3}
-                        placeholder="1. Xác định mảng chính và tỷ lệ các đối tượng cân đối.&#10;2. Thể hiện nét vẽ biểu cảm, chắc chắn.&#10;3. Phối màu hòa sắc làm nổi bật chủ đề."
-                        value={newTopicReqs}
-                        onChange={(e) => setNewTopicReqs(e.target.value)}
-                        className="w-full text-xs px-3.5 py-2 rounded-xl border border-stone-300 focus:outline-none focus:ring-1 focus:ring-[#C86446] resize-none font-sans"
-                      />
-                    </div>
-                  </div>
-
-                  {/* KHỐI 2: THIẾT LẬP RUBRIC THEO YÊU CẦU CẦN ĐẠT CỦA BÀI HỌC */}
-                  <div className="pt-3 border-t border-stone-100 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h4 className="text-xs font-bold uppercase tracking-wider text-stone-500">
-                          2. Thiết lập Rubric đánh giá bài học
-                        </h4>
-                        <p className="text-[11px] text-stone-400">
-                          Tùy chỉnh tiêu chí, mô tả và trọng số riêng cho bài học này
-                        </p>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <span
-                          className={`text-xs font-bold px-2.5 py-0.5 rounded-full border ${totalNewCriteriaWeight === 100
-                              ? "bg-emerald-50 text-emerald-800 border-emerald-200"
-                              : "bg-amber-50 text-amber-800 border-amber-200 animate-pulse"
-                            }`}
-                        >
-                          Tổng: {totalNewCriteriaWeight}% {totalNewCriteriaWeight === 100 ? "✓" : "(Cần = 100%)"}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={handleAddCriterion}
-                          className="px-2.5 py-1 text-xs bg-stone-100 hover:bg-stone-200 text-stone-800 rounded-lg font-medium flex items-center gap-1 cursor-pointer"
-                        >
-                          <Plus className="w-3.5 h-3.5" />
-                          <span>Thêm tiêu chí</span>
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="space-y-2.5 max-h-60 overflow-y-auto p-1">
-                      {newTopicCriteria.map((crit, idx) => (
-                        <div
-                          key={crit.id}
-                          className="p-3 bg-[#FAF8F5] border border-[#EAE5DC] rounded-xl space-y-2 text-xs"
-                        >
-                          <div className="flex items-center gap-2">
-                            <span className="w-5 h-5 rounded-md bg-[#F6EDE8] text-[#C86446] font-bold text-[10px] flex items-center justify-center shrink-0">
-                              {idx + 1}
-                            </span>
-                            <input
-                              type="text"
-                              required
-                              placeholder="Tên tiêu chí (ví dụ: Bố cục mảng chính)"
-                              value={crit.name}
-                              onChange={(e) => handleUpdateCriterion(crit.id, "name", e.target.value)}
-                              className="flex-1 font-bold text-stone-900 bg-white px-2.5 py-1 rounded-lg border border-stone-200 focus:outline-none focus:border-[#C86446]"
-                            />
-                            <div className="flex items-center gap-1 shrink-0">
-                              <input
-                                type="number"
-                                min={1}
-                                max={100}
-                                required
-                                value={crit.weight}
-                                onChange={(e) => handleUpdateCriterion(crit.id, "weight", Number(e.target.value))}
-                                className="w-14 text-center font-bold text-[#C86446] bg-white px-1.5 py-1 rounded-lg border border-stone-200 focus:outline-none focus:border-[#C86446]"
-                              />
-                              <span className="text-stone-500 font-bold">%</span>
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveCriterion(crit.id)}
-                              className="w-7 h-7 flex items-center justify-center text-stone-400 hover:text-red-600 hover:bg-stone-100 rounded-lg transition-colors cursor-pointer"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
+                        <div>
+                          <label className="block text-xs font-semibold text-stone-700 mb-1">
+                            Lớp thực hiện
+                          </label>
+                          <div className="text-xs px-3 py-2 rounded-xl border border-stone-200 bg-stone-50 text-stone-600 font-medium">
+                            {selectedClass.name} (Khối {selectedGrade})
                           </div>
-
-                          <textarea
-                            rows={1}
-                            required
-                            placeholder="Yêu cầu cần đạt cụ thể của học sinh đối với tiêu chí này..."
-                            value={crit.description}
-                            onChange={(e) => handleUpdateCriterion(crit.id, "description", e.target.value)}
-                            className="w-full text-[11px] p-2 bg-white rounded-lg border border-stone-200 focus:outline-none focus:border-[#C86446] resize-none"
-                          />
                         </div>
-                      ))}
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-semibold text-stone-700 mb-1">
+                          Tên chủ đề / Tên bài học
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          placeholder="Ví dụ: Chủ đề 2: Di sản mĩ thuật qua góc nhìn sáng tạo"
+                          value={newTopicTitle}
+                          onChange={(e) => setNewTopicTitle(e.target.value)}
+                          className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-stone-300 focus:outline-none focus:ring-1 focus:ring-[#C86446]"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-semibold text-stone-700 mb-1">
+                          Mô tả nhiệm vụ thực hành
+                        </label>
+                        <textarea
+                          rows={2}
+                          placeholder="Mô tả mục tiêu và nội dung thực hành cho học sinh..."
+                          value={newTopicDesc}
+                          onChange={(e) => setNewTopicDesc(e.target.value)}
+                          className="w-full text-xs px-3.5 py-2 rounded-xl border border-stone-300 focus:outline-none focus:ring-1 focus:ring-[#C86446] resize-none"
+                        />
+                      </div>
+
+                      <div>
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-1">
+                          <label className="text-xs font-semibold text-stone-700">
+                            Yêu cầu cần đạt cốt lõi (Mỗi dòng 1 yêu cầu)
+                          </label>
+                          <button
+                            type="button"
+                            onClick={handleGenerateCriteriaFromReqs}
+                            className="text-[11px] text-[#C86446] hover:underline font-semibold flex items-center gap-1 cursor-pointer self-start sm:self-auto"
+                          >
+                            <Sparkles className="w-3.5 h-3.5" />
+                            <span>Tự động sinh tiêu chí Rubric từ các dòng này</span>
+                          </button>
+                        </div>
+                        <textarea
+                          rows={3}
+                          placeholder="1. Xác định mảng chính và tỷ lệ các đối tượng cân đối.&#10;2. Thể hiện nét vẽ biểu cảm, chắc chắn.&#10;3. Phối màu hòa sắc làm nổi bật chủ đề."
+                          value={newTopicReqs}
+                          onChange={(e) => setNewTopicReqs(e.target.value)}
+                          className="w-full text-xs px-3.5 py-2 rounded-xl border border-stone-300 focus:outline-none focus:ring-1 focus:ring-[#C86446] resize-none font-sans"
+                        />
+                      </div>
+                    </div>
+
+                    {/* KHỐI 2: THIẾT LẬP RUBRIC THEO YÊU CẦU CẦN ĐẠT CỦA BÀI HỌC */}
+                    <div className="pt-3 border-t border-stone-100 space-y-3">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <div>
+                          <h4 className="text-xs font-bold uppercase tracking-wider text-stone-500">
+                            2. Thiết lập Rubric đánh giá bài học
+                          </h4>
+                          <p className="text-[11px] text-stone-400">
+                            Tùy chỉnh tiêu chí, mô tả và trọng số riêng cho bài học này
+                          </p>
+                        </div>
+
+                        <div className="flex items-center gap-2 self-start sm:self-auto">
+                          <span
+                            className={`text-xs font-bold px-2.5 py-0.5 rounded-full border ${totalNewCriteriaWeight === 100
+                                ? "bg-emerald-50 text-emerald-800 border-emerald-200"
+                                : "bg-amber-50 text-amber-800 border-amber-200 animate-pulse"
+                              }`}
+                          >
+                            Tổng: {totalNewCriteriaWeight}% {totalNewCriteriaWeight === 100 ? "✓" : "(Cần = 100%)"}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={handleAddCriterion}
+                            className="px-2.5 py-1 text-xs bg-stone-100 hover:bg-stone-200 text-stone-800 rounded-lg font-medium flex items-center gap-1 cursor-pointer"
+                          >
+                            <Plus className="w-3.5 h-3.5" />
+                            <span>Thêm tiêu chí</span>
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2.5 max-h-60 overflow-y-auto p-1">
+                        {newTopicCriteria.map((crit, idx) => (
+                          <div
+                            key={crit.id}
+                            className="p-3 bg-[#FAF8F5] border border-[#EAE5DC] rounded-xl space-y-2 text-xs"
+                          >
+                            <div className="flex items-center gap-2">
+                              <span className="w-5 h-5 rounded-md bg-[#F6EDE8] text-[#C86446] font-bold text-[10px] flex items-center justify-center shrink-0">
+                                {idx + 1}
+                              </span>
+                              <input
+                                type="text"
+                                required
+                                placeholder="Tên tiêu chí (ví dụ: Bố cục mảng chính)"
+                                value={crit.name}
+                                onChange={(e) => handleUpdateCriterion(crit.id, "name", e.target.value)}
+                                className="flex-1 font-bold text-stone-900 bg-white px-2.5 py-1 rounded-lg border border-stone-200 focus:outline-none focus:border-[#C86446]"
+                              />
+                              <div className="flex items-center gap-1 shrink-0">
+                                <input
+                                  type="number"
+                                  min={1}
+                                  max={100}
+                                  required
+                                  value={crit.weight}
+                                  onChange={(e) => handleUpdateCriterion(crit.id, "weight", Number(e.target.value))}
+                                  className="w-14 text-center font-bold text-[#C86446] bg-white px-1.5 py-1 rounded-lg border border-stone-200 focus:outline-none focus:border-[#C86446]"
+                                />
+                                <span className="text-stone-500 font-bold">%</span>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveCriterion(crit.id)}
+                                className="w-7 h-7 flex items-center justify-center text-stone-400 hover:text-red-600 hover:bg-stone-100 rounded-lg transition-colors cursor-pointer"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+
+                            <textarea
+                              rows={1}
+                              required
+                              placeholder="Yêu cầu cần đạt cụ thể của học sinh đối với tiêu chí này..."
+                              value={crit.description}
+                              onChange={(e) => handleUpdateCriterion(crit.id, "description", e.target.value)}
+                              className="w-full text-[11px] p-2 bg-white rounded-lg border border-stone-200 focus:outline-none focus:border-[#C86446] resize-none"
+                            />
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
 
-                  <div className="pt-3 border-t border-stone-100 flex items-center justify-end gap-2">
+                  <div className="pt-3 border-t border-stone-100 flex items-center justify-end gap-2 shrink-0 bg-white">
                     <button
                       type="button"
                       onClick={() => setIsCreateTopicModalOpen(false)}
-                      className="px-4 py-2 rounded-xl border border-stone-200 text-xs font-semibold text-stone-600 hover:bg-stone-50"
+                      className="px-4 py-2 rounded-xl border border-stone-200 text-xs font-semibold text-stone-600 hover:bg-stone-50 cursor-pointer"
                     >
                       Hủy
                     </button>
                     <button
                       type="submit"
                       disabled={totalNewCriteriaWeight !== 100}
-                      className="px-5 py-2 rounded-xl bg-[#C86446] hover:bg-[#B25337] text-white text-xs font-semibold shadow-xs disabled:opacity-50 transition-all flex items-center gap-1.5"
+                      className="px-5 py-2 rounded-xl bg-[#C86446] hover:bg-[#B25337] text-white text-xs font-semibold shadow-xs disabled:opacity-50 transition-all flex items-center gap-1.5 cursor-pointer"
                     >
                       <Check className="w-4 h-4" />
-                      <span>Tạo chủ đề & Lưu Rubric</span>
+                      <span>Tạo chủ đề &amp; Lưu Rubric</span>
                     </button>
                   </div>
                 </form>
@@ -2665,7 +2830,7 @@ export default function DashboardPage() {
           {/* 9. MODAL XÁC THỰC QUYỀN GIÁO VIÊN QUA MÃ PIN (TEACHER PIN AUTH) */}
           {isTeacherPinModalOpen && (
             <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/60 backdrop-blur-xs">
-              <div className="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-stone-100 animate-in fade-in zoom-in-95 duration-200">
+              <div className="bg-white rounded-3xl max-w-sm w-full p-5 sm:p-6 shadow-2xl border border-stone-100 animate-in fade-in zoom-in-95 duration-200 mx-3">
                 <div className="text-center space-y-2">
                   <div className="w-12 h-12 rounded-2xl bg-[#F6EDE8] border border-[#E8D7CF] text-[#C86446] mx-auto flex items-center justify-center shadow-xs">
                     <Lock className="w-6 h-6" />
@@ -2724,20 +2889,20 @@ export default function DashboardPage() {
 
           {/* 10. MODAL QUẢN LÝ DANH SÁCH HỌC SINH TRONG LỚP (DÀNH CHO GIÁO VIÊN) */}
           {isStudentRosterModalOpen && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/60 backdrop-blur-xs">
-              <div className="bg-white rounded-3xl max-w-2xl w-full p-6 shadow-2xl border border-stone-100 flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-200">
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-stone-900/60 backdrop-blur-xs">
+              <div className="bg-white rounded-3xl max-w-2xl w-full p-4 sm:p-6 shadow-2xl border border-stone-100 flex flex-col max-h-[92vh] sm:max-h-[88vh] overflow-hidden animate-in fade-in zoom-in-95 duration-200 mx-auto">
                 {/* Header */}
-                <div className="flex items-center justify-between pb-4 border-b border-stone-100">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-2xl bg-[#F6EDE8] border border-[#E8D7CF] text-[#C86446] flex items-center justify-center shadow-xs">
-                      <Users className="w-5 h-5" />
+                <div className="flex items-center justify-between pb-3 sm:pb-4 border-b border-stone-100 shrink-0">
+                  <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                    <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-[#F6EDE8] border border-[#E8D7CF] text-[#C86446] flex items-center justify-center shadow-xs shrink-0">
+                      <Users className="w-4 h-4 sm:w-5 sm:h-5" />
                     </div>
-                    <div>
-                      <h3 className="font-serif font-bold text-lg text-stone-900">
+                    <div className="min-w-0">
+                      <h3 className="font-serif font-bold text-base sm:text-lg text-stone-900 truncate">
                         Danh Sách Học Sinh — {selectedClass.name}
                       </h3>
-                      <p className="text-xs text-stone-500 font-sans">
-                        Khối {selectedGrade} • Năm học {selectedClass.schoolYear} • Sĩ số hiện tại:{" "}
+                      <p className="text-[11px] sm:text-xs text-stone-500 font-sans truncate">
+                        Khối {selectedGrade} • Năm học {selectedClass.schoolYear} • Sĩ số:{" "}
                         <strong className="text-[#4F6B58]">{classStudents.length} học sinh</strong>
                       </p>
                     </div>
@@ -2745,18 +2910,18 @@ export default function DashboardPage() {
                   <button
                     type="button"
                     onClick={() => setIsStudentRosterModalOpen(false)}
-                    className="w-8 h-8 rounded-xl hover:bg-stone-100 text-stone-400 hover:text-stone-700 flex items-center justify-center transition-colors cursor-pointer"
+                    className="w-8 h-8 rounded-xl hover:bg-stone-100 text-stone-400 hover:text-stone-700 flex items-center justify-center transition-colors cursor-pointer shrink-0"
                   >
                     <X className="w-4 h-4" />
                   </button>
                 </div>
 
                 {/* Thanh Tab chuyển chế độ */}
-                <div className="flex gap-2 pt-4 pb-3 border-b border-stone-100 text-xs font-semibold">
+                <div className="flex gap-1.5 sm:gap-2 pt-3 pb-2.5 border-b border-stone-100 text-xs font-semibold overflow-x-auto no-scrollbar shrink-0">
                   <button
                     type="button"
                     onClick={() => setRosterTab("list")}
-                    className={`px-3.5 py-1.5 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 ${rosterTab === "list"
+                    className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 shrink-0 ${rosterTab === "list"
                         ? "bg-[#C86446] text-white shadow-xs"
                         : "bg-stone-100 text-stone-600 hover:bg-stone-200"
                       }`}
@@ -2767,7 +2932,7 @@ export default function DashboardPage() {
                   <button
                     type="button"
                     onClick={() => setRosterTab("add")}
-                    className={`px-3.5 py-1.5 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 ${rosterTab === "add"
+                    className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 shrink-0 ${rosterTab === "add"
                         ? "bg-[#C86446] text-white shadow-xs"
                         : "bg-stone-100 text-stone-600 hover:bg-stone-200"
                       }`}
@@ -2778,18 +2943,18 @@ export default function DashboardPage() {
                   <button
                     type="button"
                     onClick={() => setRosterTab("batch")}
-                    className={`px-3.5 py-1.5 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 ${rosterTab === "batch"
+                    className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 shrink-0 ${rosterTab === "batch"
                         ? "bg-[#C86446] text-white shadow-xs"
                         : "bg-stone-100 text-stone-600 hover:bg-stone-200"
                       }`}
                   >
                     <FileText className="w-3.5 h-3.5" />
-                    <span>Nhập nhanh từ danh sách (Excel/Text)</span>
+                    <span>Nhập từ Excel/Text</span>
                   </button>
                 </div>
 
                 {/* Nội dung Tab */}
-                <div className="flex-1 overflow-y-auto py-3">
+                <div className="flex-1 overflow-y-auto py-3 overscroll-contain">
                   {rosterTab === "list" && (
                     <div className="space-y-2">
                       {classStudents.length === 0 ? (
@@ -2804,8 +2969,8 @@ export default function DashboardPage() {
                           </button>
                         </div>
                       ) : (
-                        <div className="border border-stone-200 rounded-2xl overflow-hidden text-xs">
-                          <table className="w-full text-left">
+                        <div className="border border-stone-200 rounded-2xl overflow-hidden text-xs overflow-x-auto">
+                          <table className="w-full min-w-[460px] text-left">
                             <thead className="bg-[#FAF8F5] border-b border-stone-200 text-stone-500 font-semibold text-[11px]">
                               <tr>
                                 <th className="py-2.5 px-3 w-12 text-center">STT</th>
@@ -2935,15 +3100,15 @@ export default function DashboardPage() {
                           className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-stone-300 focus:outline-none focus:ring-1 focus:ring-[#C86446] font-sans leading-relaxed"
                         />
                       </div>
-                      <div className="pt-2 flex items-center justify-between">
+                      <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
                         <button
                           type="button"
                           onClick={handleResetStudentsToDefault}
-                          className="text-[11px] text-stone-400 hover:text-stone-700 underline cursor-pointer"
+                          className="text-[11px] text-stone-400 hover:text-stone-700 underline cursor-pointer self-start sm:self-auto"
                         >
                           Khôi phục danh sách mặc định
                         </button>
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 self-end sm:self-auto">
                           <button
                             type="button"
                             onClick={() => setRosterTab("list")}
@@ -2965,14 +3130,14 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Footer */}
-                <div className="pt-3 border-t border-stone-100 flex items-center justify-between text-xs text-stone-500">
-                  <span className="text-[11px]">
-                    Dữ liệu học sinh được đồng bộ tức thì cho cổng đăng nhập và nộp bài.
+                <div className="pt-3 border-t border-stone-100 flex items-center justify-between text-xs text-stone-500 shrink-0 bg-white">
+                  <span className="text-[10px] sm:text-[11px] truncate max-w-[200px] sm:max-w-none">
+                    Dữ liệu đồng bộ tức thì cho cổng đăng nhập và nộp bài.
                   </span>
                   <button
                     type="button"
                     onClick={() => setIsStudentRosterModalOpen(false)}
-                    className="px-4 py-1.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 font-semibold transition-colors cursor-pointer"
+                    className="px-4 py-1.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 font-semibold transition-colors cursor-pointer shrink-0"
                   >
                     Đóng
                   </button>
