@@ -954,7 +954,7 @@ export default function DashboardPage() {
               ${isMobileSidebarOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full md:translate-x-0"}
             `}
           >
-            <div className="p-3.5 flex flex-col h-full overflow-y-auto">
+            <div className="p-3.5 flex flex-col h-full overflow-y-auto pb-10 md:pb-3.5">
               {/* Logo ứng dụng & Nút đóng trên Mobile */}
               <div className="flex items-center justify-between pb-3 border-b border-[#F0EBE1]">
                 <div className="flex items-center gap-2 min-w-0">
@@ -985,6 +985,55 @@ export default function DashboardPage() {
                 >
                   <X className="w-4 h-4" />
                 </button>
+              </div>
+
+              {/* THẺ TÀI KHOẢN ĐANG ĐĂNG NHẬP & NÚT ĐĂNG XUẤT (ĐƯỢC ĐẨY LÊN TRÊN ĐỂ LUÔN THẤY RÕ) */}
+              <div className="py-2.5 border-b border-[#F0EBE1]">
+                <div className="bg-[#FAF8F5] p-2.5 rounded-2xl border border-[#EAE5DC] flex items-center justify-between shadow-2xs">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div
+                      className={`w-8 h-8 rounded-full flex items-center justify-center text-white shrink-0 font-bold text-xs shadow-xs ${role === "teacher"
+                          ? "bg-[#C86446]"
+                          : role === "student"
+                            ? "bg-[#4F6B58]"
+                            : "bg-[#1E1C1A]"
+                        }`}
+                    >
+                      {role === "teacher" ? (
+                        <GraduationCap className="w-4 h-4" />
+                      ) : role === "student" ? (
+                        currentStudent?.name?.charAt(0) || "H"
+                      ) : (
+                        <Globe className="w-4 h-4" />
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-serif font-bold text-xs text-[#1E1C1A] truncate">
+                        {role === "teacher"
+                          ? "Thầy/Cô Mĩ thuật"
+                          : role === "student"
+                            ? (currentStudent?.name || "Học sinh")
+                            : "Khách tham quan"}
+                      </p>
+                      <p className="text-[10px] text-stone-500 truncate font-sans">
+                        {role === "teacher"
+                          ? "Quyền Sư phạm"
+                          : role === "student"
+                            ? `${selectedClass.name} • ${currentStudent?.id || "Chưa có mã"}`
+                            : "Triển lãm trực tuyến"}
+                      </p>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="p-1.5 text-stone-400 hover:text-stone-700 hover:bg-stone-100 rounded-lg transition-colors cursor-pointer shrink-0 ml-1"
+                    title="Đăng xuất"
+                  >
+                    <LogOut className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </div>
 
               {/* =======================================================================
@@ -1240,54 +1289,8 @@ export default function DashboardPage() {
                 </div>
               )}
 
-              {/* THẺ TÀI KHOẢN ĐANG ĐĂNG NHẬP & NÚT ĐĂNG XUẤT */}
-              <div className="pt-2.5 border-t border-[#F0EBE1] space-y-1.5 mt-auto shrink-0">
-                <div className="bg-[#FAF8F5] p-2.5 rounded-2xl border border-[#EAE5DC] flex items-center justify-between shadow-2xs">
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <div
-                      className={`w-8 h-8 rounded-full flex items-center justify-center text-white shrink-0 font-bold text-xs shadow-xs ${role === "teacher"
-                          ? "bg-[#C86446]"
-                          : role === "student"
-                            ? "bg-[#4F6B58]"
-                            : "bg-[#1E1C1A]"
-                        }`}
-                    >
-                      {role === "teacher" ? (
-                        <GraduationCap className="w-4 h-4" />
-                      ) : role === "student" ? (
-                        currentStudent?.name?.charAt(0) || "H"
-                      ) : (
-                        <Globe className="w-4 h-4" />
-                      )}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="font-serif font-bold text-xs text-[#1E1C1A] truncate">
-                        {role === "teacher"
-                          ? "Thầy/Cô Mĩ thuật"
-                          : role === "student"
-                            ? (currentStudent?.name || "Học sinh")
-                            : "Khách tham quan"}
-                      </p>
-                      <p className="text-[10px] text-stone-500 truncate font-sans">
-                        {role === "teacher"
-                          ? "Quyền Sư phạm"
-                          : role === "student"
-                            ? `${selectedClass.name} • ${currentStudent?.id || "Chưa có mã"}`
-                            : "Triển lãm trực tuyến"}
-                      </p>
-                    </div>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={handleLogout}
-                    className="p-1.5 text-stone-400 hover:text-stone-700 hover:bg-stone-100 rounded-lg transition-colors cursor-pointer shrink-0 ml-1"
-                    title="Đăng xuất"
-                  >
-                    <LogOut className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-
+              {/* PHẦN CHÂN THANH ĐIỀU HƯỚNG */}
+              <div className="pt-2.5 border-t border-[#F0EBE1] mt-auto shrink-0">
                 <div className="flex items-center justify-between px-1 text-[9px] text-stone-400 font-mono">
                   <span>ArtProgress Studio</span>
                   <span className="bg-[#FAF8F5] border border-[#EAE5DC] px-1.5 py-0.2 rounded font-semibold text-stone-500">

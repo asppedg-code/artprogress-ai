@@ -288,16 +288,21 @@ export function Gallery3DView({
   const [focusedArtwork, setFocusedArtwork] = useState<Artwork | null>(null);
   const [activeArtworkIndex, setActiveArtworkIndex] = useState(0);
   const [showRotatePrompt, setShowRotatePrompt] = useState(false);
+  // Trạng thái thiết bị cảm ứng di động (chỉ hiện nút di chuyển trên mobile/tablet cảm ứng, KHÔNG hiện trên máy tính)
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
 
-  // Theo dõi hướng màn hình để nhắc xoay ngang trên thiết bị di động
+  // Theo dõi hướng màn hình và thiết bị cảm ứng
   useEffect(() => {
     const checkOrientation = () => {
       const hasTouch = (
         ("ontouchstart" in window) ||
-        navigator.maxTouchPoints > 0 ||
-        window.matchMedia("(pointer: coarse)").matches ||
-        window.innerWidth < 1024
+        (navigator.maxTouchPoints > 0) ||
+        window.matchMedia("(pointer: coarse)").matches
       );
+      // Chỉ kích hoạt phím điều khiển ảo nếu là màn hình di động/tablet có cảm ứng
+      const isMobileTouch = hasTouch && window.innerWidth < 1024;
+      setIsTouchDevice(isMobileTouch);
+
       const isMobileSize = window.innerWidth < 1024;
       const isPortrait = window.innerHeight > window.innerWidth;
       if (hasTouch && isMobileSize && isPortrait) {
@@ -1499,9 +1504,11 @@ export function Gallery3DView({
 
       {/* =====================================================================
           THANH ĐIỀU HƯỚNG NHANH CÁC BỨC TRANH Ở ĐÁY MÀN HÌNH (QUICK JUMP BAR)
+          Portrait: Căn giữa đáy màn hình
+          Landscape: Tự động dạt về góc dưới bên phải để KHÔNG dính chùm với D-pad góc trái
           ===================================================================== */}
-      <div className="absolute bottom-4 left-4 right-4 flex items-center justify-center pointer-events-none z-20">
-        <div className="bg-stone-900/90 backdrop-blur-md px-3 py-1.5 rounded-2xl border border-stone-700/60 shadow-xl pointer-events-auto flex items-center gap-2 max-w-full overflow-x-auto">
+      <div className="absolute bottom-3 sm:bottom-4 left-3 right-3 landscape:left-auto landscape:right-3 flex items-center justify-center landscape:justify-end pointer-events-none z-20">
+        <div className="bg-stone-900/90 backdrop-blur-md px-2.5 sm:px-3 py-1.5 rounded-2xl border border-stone-700/60 shadow-xl pointer-events-auto flex items-center gap-1.5 sm:gap-2 max-w-full landscape:max-w-[calc(100vw-160px)] overflow-x-auto">
           <button
             onClick={() => focusOnArtworkByIndex(Math.max(0, activeArtworkIndex - 1))}
             disabled={activeArtworkIndex <= 0}
@@ -1511,12 +1518,12 @@ export function Gallery3DView({
             <ChevronLeft className="w-4 h-4" />
           </button>
 
-          <div className="flex items-center gap-1.5 overflow-x-auto max-w-[calc(100vw-200px)] py-1">
+          <div className="flex items-center gap-1.5 overflow-x-auto max-w-[calc(100vw-160px)] sm:max-w-md landscape:max-w-[calc(100vw-240px)] py-1">
             {displayArtworks.map((art, idx) => (
               <button
                 key={art.id}
                 onClick={() => focusOnArtworkByIndex(idx)}
-                className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all cursor-pointer shrink-0 truncate max-w-[130px] ${activeArtworkIndex === idx
+                className={`px-2.5 py-1 rounded-lg text-[10.5px] sm:text-[11px] font-medium transition-all cursor-pointer shrink-0 truncate max-w-[105px] sm:max-w-[130px] ${activeArtworkIndex === idx
                   ? "bg-amber-600 text-white font-bold shadow-xs scale-105"
                   : "bg-stone-800/80 text-stone-300 hover:bg-stone-700 hover:text-white"
                   }`}
@@ -1540,48 +1547,52 @@ export function Gallery3DView({
 
       {/* =====================================================================
           NÚT ĐIỀU HƯỚNG ẢO CHO THIẾT BỊ DI ĐỘNG (MOBILE D-PAD)
-          Hiển thị linh hoạt trên cả chế độ dọc (portrait) và xoay ngang (landscape)
+          CHỈ HIỂN THỊ TRÊN THIẾT BỊ CẢM ỨNG DI ĐỘNG (ẨN HOÀN TOÀN TRÊN MÁY TÍNH / DESKTOP)
+          Portrait: Nằm góc trái ở trên thanh chọn ảnh
+          Landscape: Nằm góc dưới bên trái, tách rời hoàn toàn với thanh chọn ảnh bên phải
           ===================================================================== */}
-      <div className="absolute bottom-20 landscape:bottom-3 sm:landscape:bottom-4 left-3 sm:left-4 pointer-events-auto z-20 flex flex-col items-center gap-1 bg-stone-900/85 p-1.5 sm:p-2 rounded-2xl border border-stone-700/60 backdrop-blur-md shadow-2xl select-none">
-        <button
-          type="button"
-          {...createWalkHandlers("w")}
-          className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-stone-800 hover:bg-stone-700 active:bg-amber-600 active:scale-95 text-white flex items-center justify-center transition-transform select-none shadow-sm cursor-pointer"
-          title="Tiến lên"
-          aria-label="Tiến lên"
-        >
-          <ArrowUp className="w-5 h-5 pointer-events-none" />
-        </button>
-        <div className="flex gap-1">
+      {isTouchDevice && (
+        <div className="absolute bottom-20 landscape:bottom-3 left-3 pointer-events-auto z-20 flex flex-col items-center gap-1 bg-stone-900/85 p-1.5 sm:p-2 rounded-2xl border border-stone-700/60 backdrop-blur-md shadow-2xl select-none lg:hidden">
           <button
             type="button"
-            {...createWalkHandlers("a")}
+            {...createWalkHandlers("w")}
             className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-stone-800 hover:bg-stone-700 active:bg-amber-600 active:scale-95 text-white flex items-center justify-center transition-transform select-none shadow-sm cursor-pointer"
-            title="Qua trái"
-            aria-label="Qua trái"
+            title="Tiến lên"
+            aria-label="Tiến lên"
           >
-            <ArrowLeft className="w-5 h-5 pointer-events-none" />
+            <ArrowUp className="w-5 h-5 pointer-events-none" />
           </button>
-          <button
-            type="button"
-            {...createWalkHandlers("s")}
-            className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-stone-800 hover:bg-stone-700 active:bg-amber-600 active:scale-95 text-white flex items-center justify-center transition-transform select-none shadow-sm cursor-pointer"
-            title="Lùi lại"
-            aria-label="Lùi lại"
-          >
-            <ArrowDown className="w-5 h-5 pointer-events-none" />
-          </button>
-          <button
-            type="button"
-            {...createWalkHandlers("d")}
-            className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-stone-800 hover:bg-stone-700 active:bg-amber-600 active:scale-95 text-white flex items-center justify-center transition-transform select-none shadow-sm cursor-pointer"
-            title="Qua phải"
-            aria-label="Qua phải"
-          >
-            <ArrowRight className="w-5 h-5 pointer-events-none" />
-          </button>
+          <div className="flex gap-1">
+            <button
+              type="button"
+              {...createWalkHandlers("a")}
+              className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-stone-800 hover:bg-stone-700 active:bg-amber-600 active:scale-95 text-white flex items-center justify-center transition-transform select-none shadow-sm cursor-pointer"
+              title="Qua trái"
+              aria-label="Qua trái"
+            >
+              <ArrowLeft className="w-5 h-5 pointer-events-none" />
+            </button>
+            <button
+              type="button"
+              {...createWalkHandlers("s")}
+              className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-stone-800 hover:bg-stone-700 active:bg-amber-600 active:scale-95 text-white flex items-center justify-center transition-transform select-none shadow-sm cursor-pointer"
+              title="Lùi lại"
+              aria-label="Lùi lại"
+            >
+              <ArrowDown className="w-5 h-5 pointer-events-none" />
+            </button>
+            <button
+              type="button"
+              {...createWalkHandlers("d")}
+              className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-stone-800 hover:bg-stone-700 active:bg-amber-600 active:scale-95 text-white flex items-center justify-center transition-transform select-none shadow-sm cursor-pointer"
+              title="Qua phải"
+              aria-label="Qua phải"
+            >
+              <ArrowRight className="w-5 h-5 pointer-events-none" />
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* =====================================================================
           THÔNG BÁO GỢI Ý XOAY NGANG MÀN HÌNH TRÊN DI ĐỘNG
