@@ -165,13 +165,26 @@ export function LoginPage({
 
   return (
     <div
-      className="min-h-screen w-full relative flex items-center justify-center p-3 sm:p-6 md:p-8 bg-cover bg-center bg-no-repeat selection:bg-[#F3E2C4] selection:text-[#96590F] overflow-x-hidden font-sans"
-      style={{
-        backgroundImage: "url('/login-bg.png')",
-        backgroundColor: "#FAF6EE",
-      }}
+      className="min-h-[100dvh] w-full relative flex items-center justify-center p-2 sm:p-4 md:p-8 login-screen-bg selection:bg-[#F3E2C4] selection:text-[#96590F] overflow-x-hidden overflow-y-auto font-sans"
     >
       <style>{`
+        /* Nền đăng nhập thích ứng: Mobile dùng tranh viền dọc (#fdf9ee), Desktop dùng studio tranh ngang (#FAF6EE) */
+        .login-screen-bg {
+          background-color: #fdf9ee;
+          background-image: url('/login-bg-mobile.png');
+          background-repeat: no-repeat;
+          background-position: center center;
+          background-size: contain;
+        }
+        @media (min-width: 1024px) {
+          .login-screen-bg {
+            background-color: #FAF6EE;
+            background-image: url('/login-bg.png');
+            background-size: cover;
+            background-position: center;
+          }
+        }
+
         /* Hiệu ứng vệt cọ quét qua nút bấm (/impeccable animate) */
         .brush-sweep-btn {
           position: relative;
@@ -203,23 +216,24 @@ export function LoginPage({
         }
       `}</style>
 
-      {/* CONTAINER CHÍNH: PHÂN ĐÔI TRÁI (HỌA SĨ VẼ TRANH) & PHẢI (Ô ĐĂNG NHẬP) - CĂN CHÍNH GIỮA */}
-      <div className="w-full max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-10 items-center justify-items-center min-h-[560px] z-10 py-2 sm:py-4">
+      {/* CONTAINER CHÍNH: MOBILE CĂN GIỮA Ô ĐĂNG NHẬP, DESKTOP PHÂN ĐÔI TRÁI (HỌA SĨ) & PHẢI (Ô ĐĂNG NHẬP) */}
+      <div className="w-full max-w-7xl mx-auto flex flex-col lg:grid lg:grid-cols-2 gap-6 lg:gap-10 items-center justify-center lg:justify-items-center min-h-[calc(100dvh-2rem)] lg:min-h-[560px] z-10 py-2 sm:py-4">
 
         {/* =====================================================================
-            PHẦN BÊN TRÁI: ANIMATION HỌA SĨ ĐANG VẼ TRANH Ở CHÍNH GIỮA
+            PHẦN BÊN TRÁI: ANIMATION HỌA SĨ ĐANG VẼ TRANH (CHỈ HIỆN TRÊN DESKTOP)
             Căn chính giữa chuẩn xác trong nửa màn hình bên trái
             ===================================================================== */}
-        <div className="w-full flex items-center justify-center px-2 sm:px-6">
+        <div className="hidden lg:flex w-full items-center justify-center px-2 sm:px-6">
           <ArtistPaintingAnimation />
         </div>
 
         {/* =====================================================================
-            PHẦN BÊN PHẢI: Ô ĐĂNG NHẬP (LOGIN BOX)
-            Căn chính giữa chuẩn xác trong nửa màn hình màu vàng kem bên phải
+            PHẦN Ô ĐĂNG NHẬP (LOGIN BOX)
+            Mobile: Căn chính giữa khoảng trống của tranh viền #fdf9ee
+            Desktop: Nằm ở nửa màn hình bên phải
             ===================================================================== */}
-        <div className="w-full flex items-center justify-center px-2 sm:px-6">
-          <div className="w-full max-w-[400px] bg-white/95 backdrop-blur-md rounded-2xl border border-[#E8DFC9] atelier-card-glow p-4 sm:p-5 relative transition-all sm:-translate-y-6 sm:translate-x-15">
+        <div className="w-full flex items-center justify-center px-1 sm:px-6">
+          <div className="w-[92%] sm:w-full max-w-[340px] sm:max-w-[360px] lg:max-w-[400px] bg-white/94 backdrop-blur-md rounded-2xl sm:rounded-3xl border border-[#E8DFC9] atelier-card-glow p-4 sm:p-5 relative transition-all lg:-translate-y-6 lg:translate-x-12">
 
             {/* TIÊU ĐỀ Ô ĐĂNG NHẬP (TINH GIẢN GỌN GÀNG) */}
             <div className="text-center mb-3">
@@ -243,7 +257,7 @@ export function LoginPage({
                   }`}
               >
                 <GraduationCap className={`w-4 h-4 shrink-0 ${activeTab === "teacher" ? "text-[#C85A32]" : "text-[#8C7F6E]"}`} />
-                <span className="font-serif">Giáo Viên</span>
+                <span className="font-serif text-[11.5px] sm:text-xs">Giáo Viên</span>
               </button>
 
               {/* Tab 2: Học Sinh */}
@@ -256,7 +270,7 @@ export function LoginPage({
                   }`}
               >
                 <Palette className={`w-4 h-4 shrink-0 ${activeTab === "student" ? "text-[#27445D]" : "text-[#8C7F6E]"}`} />
-                <span className="font-serif">Học Sinh</span>
+                <span className="font-serif text-[11.5px] sm:text-xs">Học Sinh</span>
               </button>
 
               {/* Tab 3: Khách */}
@@ -269,7 +283,7 @@ export function LoginPage({
                   }`}
               >
                 <Frame className={`w-4 h-4 shrink-0 ${activeTab === "guest" ? "text-[#C57D22]" : "text-[#8C7F6E]"}`} />
-                <span className="font-serif">Khách</span>
+                <span className="font-serif text-[11.5px] sm:text-xs">Khách</span>
               </button>
             </div>
 
