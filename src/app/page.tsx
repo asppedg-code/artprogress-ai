@@ -948,7 +948,7 @@ export default function DashboardPage() {
           onLoginGuest={handleLoginGuest}
         />
       ) : (
-        <div className="flex h-screen w-full bg-[#FAF8F5] text-[#1E1C1A] overflow-hidden select-none print:h-auto print:overflow-visible print:block">
+        <div className="flex h-screen h-[100dvh] max-h-[100dvh] w-full bg-[#FAF8F5] text-[#1E1C1A] overflow-hidden overscroll-none select-none print:h-auto print:overflow-visible print:block">
           {/* =========================================================================
           1. TRỤC ĐIỀU HƯỚNG CỐ ĐỊNH BÊN TRÁI (w-60)
           Tích hợp Bộ quản lý 4 Khối & 16 Lớp học THCS
@@ -1325,94 +1325,96 @@ export default function DashboardPage() {
           2. NỘI DUNG CHÍNH (FULL VIEW HOẶC CẤU TRÚC WORKSPACE VỚI BẢNG TRƯỢT DRAWER)
       ========================================================================= */}
           <main className="flex-1 flex flex-col h-full overflow-hidden print:hidden min-w-0">
-            {/* THANH TOP HEADER DÀNH RIÊNG CHO MOBILE (< md) */}
-            <header className="md:hidden h-14 bg-white border-b border-[#EAE5DC] px-3.5 flex items-center justify-between z-20 shrink-0 shadow-2xs">
-              <div className="flex items-center gap-2.5 min-w-0">
-                <button
-                  type="button"
-                  onClick={() => setIsMobileSidebarOpen(true)}
-                  className="w-9 h-9 rounded-xl bg-[#FAF8F5] border border-[#EAE5DC] hover:border-[#C86446] text-stone-700 flex items-center justify-center active:scale-95 transition-all cursor-pointer shrink-0"
-                  title="Mở menu điều hướng"
-                >
-                  <Menu className="w-4 h-4" />
-                </button>
-                <div className="min-w-0">
-                  <div className="flex items-center gap-1.5">
-                    <span className="font-serif font-bold text-[#1E1C1A] text-xs truncate">
-                      ArtProgress
-                    </span>
-                    <span className="text-[8.5px] font-bold text-[#C86446] bg-[#F6EDE8] px-1.5 py-0.2 rounded-full border border-[#E8D7CF] truncate">
-                      {role === "student" ? selectedClass.name : role === "teacher" ? `Khối ${selectedGrade} • ${selectedClass.name}` : "Triển lãm"}
-                    </span>
+            {/* THANH TOP HEADER DÀNH RIÊNG CHO MOBILE (< md) - TỰ ĐỘNG ẨN KHI Ở PHÒNG TRANH 3D ĐỂ TẠO KHÔNG GIAN TOÀN MÀN HÌNH */}
+            {!(activeNav === "gallery" && galleryViewMode === "3d") && (
+              <header className="md:hidden h-14 bg-white border-b border-[#EAE5DC] px-3.5 flex items-center justify-between z-20 shrink-0 shadow-2xs">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <button
+                    type="button"
+                    onClick={() => setIsMobileSidebarOpen(true)}
+                    className="w-9 h-9 rounded-xl bg-[#FAF8F5] border border-[#EAE5DC] hover:border-[#C86446] text-stone-700 flex items-center justify-center active:scale-95 transition-all cursor-pointer shrink-0"
+                    title="Mở menu điều hướng"
+                  >
+                    <Menu className="w-4 h-4" />
+                  </button>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-serif font-bold text-[#1E1C1A] text-xs truncate">
+                        ArtProgress
+                      </span>
+                      <span className="text-[8.5px] font-bold text-[#C86446] bg-[#F6EDE8] px-1.5 py-0.2 rounded-full border border-[#E8D7CF] truncate">
+                        {role === "student" ? selectedClass.name : role === "teacher" ? `Khối ${selectedGrade} • ${selectedClass.name}` : "Triển lãm"}
+                      </span>
+                    </div>
+                    <p className="text-[9.5px] text-stone-400 truncate font-sans">
+                      {activeNav === "portfolio" ? "Hồ sơ bài vẽ" : activeNav === "topics" ? "Chủ đề bài học" : activeNav === "rubric" ? "Rubric bài học" : "Phòng triển lãm"}
+                    </p>
                   </div>
-                  <p className="text-[9.5px] text-stone-400 truncate font-sans">
-                    {activeNav === "portfolio" ? "Hồ sơ bài vẽ" : activeNav === "topics" ? "Chủ đề bài học" : activeNav === "rubric" ? "Rubric bài học" : "Phòng triển lãm"}
-                  </p>
                 </div>
-              </div>
 
-              {/* Tác vụ nhanh bên phải mobile header */}
-              <div className="flex items-center gap-1.5 shrink-0">
-                {role === "student" && (
+                {/* Tác vụ nhanh bên phải mobile header */}
+                <div className="flex items-center gap-1.5 shrink-0">
+                  {role === "student" && (
+                    <button
+                      type="button"
+                      disabled={currentGradeTopics.length === 0 || !currentGradeTopics.some((t) => t.isActive)}
+                      onClick={() => {
+                        setIsRevisionUpload(false);
+                        setIsUploadModalOpen(true);
+                      }}
+                      className={`py-1.5 px-2.5 rounded-lg text-xs font-semibold shadow-xs flex items-center gap-1 transition-all ${
+                        currentGradeTopics.some((t) => t.isActive)
+                          ? "bg-[#C86446] text-white active:scale-95 cursor-pointer"
+                          : "bg-stone-200 text-stone-400 cursor-not-allowed"
+                      }`}
+                      title="Nộp bài vẽ mới"
+                    >
+                      <Upload className="w-3.5 h-3.5" />
+                      <span className="text-[11px] font-bold">Nộp bài</span>
+                    </button>
+                  )}
+
+                  {role === "teacher" && activeNav === "topics" && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setNewTopicGrade(selectedGrade);
+                        setIsCreateTopicModalOpen(true);
+                      }}
+                      className="py-1.5 px-2.5 bg-[#C86446] text-white text-[11px] font-bold rounded-lg shadow-xs flex items-center gap-1 cursor-pointer active:scale-95"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>Tạo</span>
+                    </button>
+                  )}
+
+                  {role === "teacher" && activeNav === "portfolio" && (
+                    <button
+                      type="button"
+                      onClick={() => setIsStudentRosterModalOpen(true)}
+                      className="py-1.5 px-2 rounded-lg bg-[#FAF8F5] border border-[#EAE5DC] text-[#C86446] text-[11px] font-bold shadow-2xs flex items-center gap-1 active:scale-95 cursor-pointer"
+                      title="Quản lý học sinh"
+                    >
+                      <Users className="w-3.5 h-3.5" />
+                      <span>HS ({classStudents.length})</span>
+                    </button>
+                  )}
+
+                  {/* Đổi góc làm việc nhanh giữa Bài vẽ & Chủ đề */}
                   <button
                     type="button"
-                    disabled={currentGradeTopics.length === 0 || !currentGradeTopics.some((t) => t.isActive)}
                     onClick={() => {
-                      setIsRevisionUpload(false);
-                      setIsUploadModalOpen(true);
+                      if (activeNav === "portfolio") setCurrentNav("topics");
+                      else setCurrentNav("portfolio");
                     }}
-                    className={`py-1.5 px-2.5 rounded-lg text-xs font-semibold shadow-xs flex items-center gap-1 transition-all ${
-                      currentGradeTopics.some((t) => t.isActive)
-                        ? "bg-[#C86446] text-white active:scale-95 cursor-pointer"
-                        : "bg-stone-200 text-stone-400 cursor-not-allowed"
-                    }`}
-                    title="Nộp bài vẽ mới"
+                    className="w-8 h-8 rounded-lg bg-[#FAF8F5] border border-[#EAE5DC] text-stone-600 hover:text-[#C86446] flex items-center justify-center text-[10px] active:scale-95 transition-all cursor-pointer"
+                    title="Chuyển chế độ xem"
                   >
-                    <Upload className="w-3.5 h-3.5" />
-                    <span className="text-[11px] font-bold">Nộp bài</span>
+                    {activeNav === "portfolio" ? <BookOpen className="w-3.5 h-3.5 text-[#C86446]" /> : <Layers className="w-3.5 h-3.5 text-[#C86446]" />}
                   </button>
-                )}
-
-                {role === "teacher" && activeNav === "topics" && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setNewTopicGrade(selectedGrade);
-                      setIsCreateTopicModalOpen(true);
-                    }}
-                    className="py-1.5 px-2.5 bg-[#C86446] text-white text-[11px] font-bold rounded-lg shadow-xs flex items-center gap-1 cursor-pointer active:scale-95"
-                  >
-                    <Plus className="w-3.5 h-3.5" />
-                    <span>Tạo</span>
-                  </button>
-                )}
-
-                {role === "teacher" && activeNav === "portfolio" && (
-                  <button
-                    type="button"
-                    onClick={() => setIsStudentRosterModalOpen(true)}
-                    className="py-1.5 px-2 rounded-lg bg-[#FAF8F5] border border-[#EAE5DC] text-[#C86446] text-[11px] font-bold shadow-2xs flex items-center gap-1 active:scale-95 cursor-pointer"
-                    title="Quản lý học sinh"
-                  >
-                    <Users className="w-3.5 h-3.5" />
-                    <span>HS ({classStudents.length})</span>
-                  </button>
-                )}
-
-                {/* Đổi góc làm việc nhanh giữa Bài vẽ & Chủ đề */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (activeNav === "portfolio") setCurrentNav("topics");
-                    else setCurrentNav("portfolio");
-                  }}
-                  className="w-8 h-8 rounded-lg bg-[#FAF8F5] border border-[#EAE5DC] text-stone-600 hover:text-[#C86446] flex items-center justify-center text-[10px] active:scale-95 transition-all cursor-pointer"
-                  title="Chuyển chế độ xem"
-                >
-                  {activeNav === "portfolio" ? <BookOpen className="w-3.5 h-3.5 text-[#C86446]" /> : <Layers className="w-3.5 h-3.5 text-[#C86446]" />}
-                </button>
-              </div>
-            </header>
+                </div>
+              </header>
+            )}
             {/* VIEW 1: CHỦ ĐỀ BÀI HỌC (CÓ NÚT ĐÓNG / MỞ NỘP BÀI) */}
             {activeNav === "topics" && (
               <div className="flex-1 p-3.5 sm:p-6 md:p-8 overflow-y-auto space-y-4 sm:space-y-6 max-w-5xl mx-auto w-full">
@@ -1714,11 +1716,12 @@ export default function DashboardPage() {
             {/* VIEW 3: PHÒNG TRIỂN LÃM CÔNG KHAI (HỖ TRỢ CHẾ ĐỘ 3D VÀ LƯỚI 2D) */}
             {activeNav === "gallery" && (
               galleryViewMode === "3d" ? (
-                <div className="flex-1 w-full h-full relative overflow-hidden flex flex-col min-h-0 bg-[#1A1614]">
+                <div className="fixed inset-0 z-30 md:static md:z-auto flex-1 w-full h-[100dvh] md:h-full relative overflow-hidden flex flex-col min-h-0 bg-[#1A1614] touch-none overscroll-none">
                   <Gallery3DView
                     artworks={publicArtworks}
                     onSelectArtwork={handleSelectGalleryArtwork}
                     onSwitchToGrid={handleSwitchToGrid}
+                    onToggleSidebar={() => setIsMobileSidebarOpen(true)}
                   />
                 </div>
               ) : (

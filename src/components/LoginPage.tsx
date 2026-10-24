@@ -240,8 +240,8 @@ export function LoginPage({
               <h2 className="font-serif text-xl sm:text-2xl font-bold text-[#241F1C] tracking-tight">
                 Đăng Nhập
               </h2>
-              <p className="text-[11px] text-[#8C7F6E] mt-0.5">
-                Vui lòng chọn đúng vai trò bên dưới
+              <p className="text-[9.5px] text-[#8C7F6E] mt-1">
+                Khuyến khích truy cập trên máy tính để đạt trải nghiệm tốt nhất
               </p>
             </div>
 

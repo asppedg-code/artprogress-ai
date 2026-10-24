@@ -19,12 +19,14 @@ import {
   ArrowRight,
   Smartphone,
   RotateCw,
+  Menu,
 } from "lucide-react";
 
 interface Gallery3DViewProps {
   artworks: Artwork[];
   onSelectArtwork: (artwork: Artwork) => void;
   onSwitchToGrid: () => void;
+  onToggleSidebar?: () => void;
 }
 
 // Bức tranh mẫu trang trí khi phòng chưa có bài nộp công khai
@@ -265,6 +267,7 @@ export function Gallery3DView({
   artworks,
   onSelectArtwork,
   onSwitchToGrid,
+  onToggleSidebar,
 }: Gallery3DViewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -384,6 +387,27 @@ export function Gallery3DView({
   useEffect(() => {
     const timer = setTimeout(() => setShowHelp(false), 7000);
     return () => clearTimeout(timer);
+  }, []);
+
+  // Khóa tuyệt đối việc cuộn trang và kéo giật (overscroll/bounce) trên điện thoại khi xem phòng tranh 3D
+  useEffect(() => {
+    const originalOverflow = document.body.style.overflow;
+    const originalOverscroll = document.body.style.overscrollBehavior;
+    const originalTouchAction = document.body.style.touchAction;
+
+    document.body.style.overflow = "hidden";
+    document.body.style.overscrollBehavior = "none";
+    document.body.style.touchAction = "none";
+    document.documentElement.style.overflow = "hidden";
+    document.documentElement.style.overscrollBehavior = "none";
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      document.body.style.overscrollBehavior = originalOverscroll;
+      document.body.style.touchAction = originalTouchAction;
+      document.documentElement.style.overflow = "";
+      document.documentElement.style.overscrollBehavior = "";
+    };
   }, []);
 
   // Di chuyển mượt mà tới bức tranh chỉ định
@@ -1398,12 +1422,12 @@ export function Gallery3DView({
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-full flex-1 bg-[#1A1614] overflow-hidden select-none outline-none"
+      className="relative w-full h-full flex-1 bg-[#1A1614] overflow-hidden select-none outline-none touch-none overscroll-none"
     >
       {/* KHUNG VẼ 3D WEBGL */}
       <canvas
         ref={canvasRef}
-        className="w-full h-full block cursor-grab active:cursor-grabbing outline-none"
+        className="w-full h-full block cursor-grab active:cursor-grabbing outline-none touch-none overscroll-none"
       />
 
       {/* TÂM NGẮM THẨM MỸ (RETICLE) - ZERO REACT RE-RENDER */}
@@ -1422,13 +1446,24 @@ export function Gallery3DView({
       </div>
 
       {/* =====================================================================
-          HUD TRÊN CÙNG: HUY HIỆU PHIÊN BẢN (TRÁI) & THANH CÔNG CỤ (PHẢI)
+          HUD TRÊN CÙNG: NÚT MỞ SIDEBAR (TRÁI) & HUY HIỆU PHIÊN BẢN (TRÁI)
           ===================================================================== */}
-      <div className="absolute top-4 left-4 pointer-events-none z-20 flex items-center gap-2">
-        <div className="bg-stone-900/85 backdrop-blur-md px-3 py-1.5 rounded-xl border border-stone-700/60 shadow-lg flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-          <span className="font-serif font-bold text-xs text-white">Triển Lãm 3D</span>
-          <span className="text-[9.5px] font-mono font-semibold bg-stone-800 text-amber-300 px-1.5 py-0.2 rounded border border-stone-700">
+      <div className="absolute top-3.5 left-3.5 pointer-events-none z-20 flex items-center gap-2">
+        {onToggleSidebar && (
+          <button
+            type="button"
+            onClick={onToggleSidebar}
+            className="pointer-events-auto w-9 h-9 rounded-xl bg-stone-900/85 hover:bg-stone-800 active:scale-95 text-stone-200 hover:text-white border border-stone-700/60 shadow-lg backdrop-blur-md flex items-center justify-center transition-all cursor-pointer"
+            title="Mở menu điều hướng"
+            aria-label="Mở menu điều hướng"
+          >
+            <Menu className="w-4 h-4" />
+          </button>
+        )}
+        <div className="bg-stone-900/85 backdrop-blur-md px-2.5 sm:px-3 py-1.5 rounded-xl border border-stone-700/60 shadow-lg flex items-center gap-2 pointer-events-auto">
+          <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+          <span className="font-serif font-bold text-xs text-white whitespace-nowrap">Triển Lãm 3D</span>
+          <span className="hidden sm:inline-block text-[9.5px] font-mono font-semibold bg-stone-800 text-amber-300 px-1.5 py-0.2 rounded border border-stone-700">
             v{APP_VERSION}
           </span>
         </div>
@@ -1513,9 +1548,10 @@ export function Gallery3DView({
 
       {/* =====================================================================
           THẺ CHI TIẾT BỨC TRANH ĐANG ĐỨNG ĐỐI DIỆN
+          Đặt ở bottom-28 để nổi lên trên cả cụm D-pad và thanh chọn tranh
           ===================================================================== */}
       {focusedArtwork && (
-        <div className="absolute bottom-20 left-1/2 -translate-x-1/2 pointer-events-auto z-20 max-w-md w-[92%] sm:w-auto animate-in slide-in-from-bottom-3 duration-200">
+        <div className="absolute bottom-28 sm:bottom-24 left-1/2 -translate-x-1/2 pointer-events-auto z-20 max-w-md w-[92%] sm:w-auto animate-in slide-in-from-bottom-3 duration-200">
           <div className="bg-stone-900/95 backdrop-blur-md px-5 py-3.5 rounded-2xl border border-amber-500/60 shadow-2xl flex items-center justify-between gap-4">
             <div className="min-w-0">
               <span className="text-[9.5px] uppercase font-bold tracking-wider text-amber-400 block">
@@ -1542,69 +1578,71 @@ export function Gallery3DView({
 
       {/* =====================================================================
           THANH ĐIỀU HƯỚNG NHANH CÁC BỨC TRANH Ở ĐÁY MÀN HÌNH (QUICK JUMP BAR)
-          CHỈ HIỂN THỊ TRÊN MÁY TÍNH (DESKTOP) - ẨN HOÀN TOÀN TRÊN ĐIỆN THOẠI
+          Tự động co giãn theo tỉ lệ màn hình: Dạt gọn gàng góc phải trên điện thoại
+          để KHÔNG BAO GIỜ bị tràn hoặc chạm vào cụm phím điều hướng D-pad bên trái
           ===================================================================== */}
-      {!isTouchDevice && (
-        <div className="hidden lg:flex absolute bottom-4 right-4 items-center justify-end pointer-events-none z-20">
-          <div className="bg-stone-900/90 backdrop-blur-md px-3 py-1.5 rounded-2xl border border-stone-700/60 shadow-xl pointer-events-auto flex items-center gap-2 max-w-md overflow-x-auto">
-            <button
-              onClick={() => focusOnArtworkByIndex(Math.max(0, activeArtworkIndex - 1))}
-              disabled={activeArtworkIndex <= 0}
-              className="w-7 h-7 rounded-lg bg-stone-800 hover:bg-stone-700 disabled:opacity-25 text-white flex items-center justify-center cursor-pointer transition-all shrink-0"
-              title="Tranh trước"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
+      <div className="absolute bottom-3.5 right-3 sm:bottom-4 sm:right-4 z-20 flex items-center justify-end pointer-events-none">
+        <div className="bg-stone-900/90 backdrop-blur-md px-1.5 sm:px-3 py-1 sm:py-1.5 rounded-xl sm:rounded-2xl border border-stone-700/60 shadow-xl pointer-events-auto flex items-center gap-1 sm:gap-2 max-w-[calc(100vw-158px)] sm:max-w-md overflow-x-auto">
+          <button
+            onClick={() => focusOnArtworkByIndex(Math.max(0, activeArtworkIndex - 1))}
+            disabled={activeArtworkIndex <= 0}
+            className="w-7 h-7 sm:w-7.5 sm:h-7.5 rounded-lg bg-stone-800 hover:bg-stone-700 disabled:opacity-25 text-white flex items-center justify-center cursor-pointer transition-all shrink-0"
+            title="Tranh trước"
+            aria-label="Tranh trước"
+          >
+            <ChevronLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+          </button>
 
-            <div className="flex items-center gap-1.5 overflow-x-auto max-w-sm py-1">
-              {displayArtworks.map((art, idx) => (
-                <button
-                  key={art.id}
-                  onClick={() => focusOnArtworkByIndex(idx)}
-                  className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all cursor-pointer shrink-0 truncate max-w-[130px] ${activeArtworkIndex === idx
+          <div className="flex items-center gap-1 overflow-x-auto max-w-[calc(100vw-230px)] sm:max-w-xs py-0.5 no-scrollbar">
+            {displayArtworks.map((art, idx) => (
+              <button
+                key={art.id}
+                onClick={() => focusOnArtworkByIndex(idx)}
+                className={`px-2 sm:px-2.5 py-0.8 sm:py-1 rounded-lg text-[9.5px] sm:text-[11px] font-medium transition-all cursor-pointer shrink-0 truncate max-w-[76px] sm:max-w-[130px] ${
+                  activeArtworkIndex === idx
                     ? "bg-amber-600 text-white font-bold shadow-xs scale-105"
                     : "bg-stone-800/80 text-stone-300 hover:bg-stone-700 hover:text-white"
-                    }`}
-                  title={`${art.title} - ${art.studentName}`}
-                >
-                  {idx + 1}. {art.title}
-                </button>
-              ))}
-            </div>
-
-            <button
-              onClick={() => focusOnArtworkByIndex(Math.min(displayArtworks.length - 1, activeArtworkIndex + 1))}
-              disabled={activeArtworkIndex >= displayArtworks.length - 1}
-              className="w-7 h-7 rounded-lg bg-stone-800 hover:bg-stone-700 disabled:opacity-25 text-white flex items-center justify-center cursor-pointer transition-all shrink-0"
-              title="Tranh tiếp theo"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
+                }`}
+                title={`${art.title} - ${art.studentName}`}
+              >
+                {idx + 1}. {art.title}
+              </button>
+            ))}
           </div>
+
+          <button
+            onClick={() => focusOnArtworkByIndex(Math.min(displayArtworks.length - 1, activeArtworkIndex + 1))}
+            disabled={activeArtworkIndex >= displayArtworks.length - 1}
+            className="w-7 h-7 sm:w-7.5 sm:h-7.5 rounded-lg bg-stone-800 hover:bg-stone-700 disabled:opacity-25 text-white flex items-center justify-center cursor-pointer transition-all shrink-0"
+            title="Tranh tiếp theo"
+            aria-label="Tranh tiếp theo"
+          >
+            <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+          </button>
         </div>
-      )}
+      </div>
 
       {/* =====================================================================
           NÚT ĐIỀU HƯỚNG ẢO CHO THIẾT BỊ DI ĐỘNG (MOBILE D-PAD)
           CHỈ HIỂN THỊ TRÊN THIẾT BỊ CẢM ỨNG DI ĐỘNG (ẨN HOÀN TOÀN TRÊN MÁY TÍNH / DESKTOP)
-          Vị trí góc dưới bên trái cố định mượt mà (cả dọc và xoay ngang)
+          Vị trí góc dưới bên trái, kích thước tối ưu ôm gọn không đè lên thanh chọn tranh
           ===================================================================== */}
       {isTouchDevice && (
-        <div className="absolute bottom-4 left-4 pointer-events-auto z-20 flex flex-col items-center gap-1.5 bg-stone-900/90 p-2 rounded-2xl border border-stone-700/60 backdrop-blur-md shadow-2xl select-none lg:hidden">
+        <div className="absolute bottom-3.5 left-3 sm:bottom-4 sm:left-4 pointer-events-auto z-20 flex flex-col items-center gap-1 bg-stone-900/90 p-1.5 sm:p-2 rounded-2xl border border-stone-700/60 backdrop-blur-md shadow-2xl select-none lg:hidden">
           <button
             type="button"
             {...createWalkHandlers("w")}
-            className="w-11 h-11 rounded-xl bg-stone-800 hover:bg-stone-700 active:bg-amber-600 active:scale-95 text-white flex items-center justify-center transition-transform select-none shadow-sm cursor-pointer"
+            className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-stone-800 hover:bg-stone-700 active:bg-amber-600 active:scale-95 text-white flex items-center justify-center transition-transform select-none shadow-sm cursor-pointer"
             title="Tiến lên"
             aria-label="Tiến lên"
           >
             <ArrowUp className="w-5 h-5 pointer-events-none" />
           </button>
-          <div className="flex gap-1.5">
+          <div className="flex gap-1">
             <button
               type="button"
               {...createWalkHandlers("a")}
-              className="w-11 h-11 rounded-xl bg-stone-800 hover:bg-stone-700 active:bg-amber-600 active:scale-95 text-white flex items-center justify-center transition-transform select-none shadow-sm cursor-pointer"
+              className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-stone-800 hover:bg-stone-700 active:bg-amber-600 active:scale-95 text-white flex items-center justify-center transition-transform select-none shadow-sm cursor-pointer"
               title="Qua trái"
               aria-label="Qua trái"
             >
@@ -1613,7 +1651,7 @@ export function Gallery3DView({
             <button
               type="button"
               {...createWalkHandlers("s")}
-              className="w-11 h-11 rounded-xl bg-stone-800 hover:bg-stone-700 active:bg-amber-600 active:scale-95 text-white flex items-center justify-center transition-transform select-none shadow-sm cursor-pointer"
+              className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-stone-800 hover:bg-stone-700 active:bg-amber-600 active:scale-95 text-white flex items-center justify-center transition-transform select-none shadow-sm cursor-pointer"
               title="Lùi lại"
               aria-label="Lùi lại"
             >
@@ -1622,7 +1660,7 @@ export function Gallery3DView({
             <button
               type="button"
               {...createWalkHandlers("d")}
-              className="w-11 h-11 rounded-xl bg-stone-800 hover:bg-stone-700 active:bg-amber-600 active:scale-95 text-white flex items-center justify-center transition-transform select-none shadow-sm cursor-pointer"
+              className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-stone-800 hover:bg-stone-700 active:bg-amber-600 active:scale-95 text-white flex items-center justify-center transition-transform select-none shadow-sm cursor-pointer"
               title="Qua phải"
               aria-label="Qua phải"
             >
