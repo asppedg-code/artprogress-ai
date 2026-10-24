@@ -140,16 +140,10 @@ export function LoginPage({
     }
     const success = onLoginTeacher(pin);
     if (!success) {
-      setPinError("Mã PIN không đúng. Gợi ý: Dùng mã mặc định 123456.");
+      setPinError("Mã PIN không đúng. Vui lòng thử lại.");
     } else {
       setPinError("");
     }
-  };
-
-  // Điền nhanh mã PIN Giám khảo
-  const handleQuickFillPin = () => {
-    setPin("123456");
-    setPinError("");
   };
 
   // Đăng nhập học sinh
@@ -293,17 +287,10 @@ export function LoginPage({
             {activeTab === "teacher" && (
               <form onSubmit={handleTeacherSubmit} className="space-y-3">
                 <div className="space-y-1">
-                  <div className="flex items-center justify-between">
+                  <div>
                     <label htmlFor="teacher-pin-input" className="block text-xs font-semibold text-[#3B342C]">
                       Mã PIN Giáo viên
                     </label>
-                    <button
-                      type="button"
-                      onClick={handleQuickFillPin}
-                      className="text-[10.5px] text-[#C85A32] hover:underline cursor-pointer font-medium"
-                    >
-                      Mã thử nghiệm: 123456
-                    </button>
                   </div>
 
                   <div className="relative">

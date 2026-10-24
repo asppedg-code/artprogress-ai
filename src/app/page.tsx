@@ -216,7 +216,7 @@ export default function DashboardPage() {
           try {
             localStorage.clear();
             sessionStorage.clear();
-          } catch {}
+          } catch { }
           safeLocalStorageSet("artprogress_app_version", APP_VERSION);
           safeLocalStorageSet("artprogress_storage_version", STORAGE_VERSION_TAG);
 
@@ -225,7 +225,7 @@ export default function DashboardPage() {
             try {
               const cacheKeys = await caches.keys();
               await Promise.all(cacheKeys.map((key) => caches.delete(key)));
-            } catch {}
+            } catch { }
           }
 
           // Reload sạch sẽ trang để nạp trọn vẹn bundle mới nhất
@@ -251,14 +251,14 @@ export default function DashboardPage() {
             try {
               const parsed = JSON.parse(cachedStudents);
               if (Array.isArray(parsed) && parsed.length > 0) setStudents(parsed);
-            } catch {}
+            } catch { }
           }
           const cachedTopics = safeLocalStorageGet("artprogress_topics");
           if (cachedTopics) {
             try {
               const parsed = JSON.parse(cachedTopics);
               if (Array.isArray(parsed) && parsed.length > 0) setTopics(parsed);
-            } catch {}
+            } catch { }
           }
         }
 
@@ -316,7 +316,7 @@ export default function DashboardPage() {
           if (isCancelled) return;
           if (cloudArtworks && cloudArtworks.length > 0) {
             setArtworks(cloudArtworks);
-            idbSet("artprogress_artworks", cloudArtworks).catch(() => {});
+            idbSet("artprogress_artworks", cloudArtworks).catch(() => { });
           }
           if (cloudTopics && cloudTopics.length > 0) {
             setTopics(cloudTopics);
@@ -452,8 +452,8 @@ export default function DashboardPage() {
 
   // ĐĂNG NHẬP CỔNG GIÁO VIÊN
   const handleLoginTeacher = (pin: string) => {
-    const correctPin = process.env.NEXT_PUBLIC_TEACHER_PIN || "123456";
-    if (pin.trim() === correctPin) {
+    const correctPin = (process.env.NEXT_PUBLIC_TEACHER_PIN || "").trim();
+    if (correctPin && pin.trim() === correctPin) {
       triggerLoginTransition(() => {
         setRole("teacher");
         setIsTeacherAuthenticated(true);
@@ -652,14 +652,14 @@ export default function DashboardPage() {
 
   const handleVerifyTeacherPin = (e: React.FormEvent) => {
     e.preventDefault();
-    const correctPin = process.env.NEXT_PUBLIC_TEACHER_PIN || "123456";
-    if (teacherPinInput.trim() === correctPin) {
+    const correctPin = (process.env.NEXT_PUBLIC_TEACHER_PIN || "").trim();
+    if (correctPin && teacherPinInput.trim() === correctPin) {
       setIsTeacherAuthenticated(true);
       setRole("teacher");
       setIsTeacherPinModalOpen(false);
       setTeacherPinError("");
     } else {
-      setTeacherPinError("Mã PIN không đúng. Vui lòng thử lại (Mặc định: 123456).");
+      setTeacherPinError("Mã PIN không đúng. Vui lòng thử lại.");
     }
   };
 
@@ -1017,10 +1017,10 @@ export default function DashboardPage() {
                   <div className="flex items-center gap-2.5 min-w-0">
                     <div
                       className={`w-8 h-8 rounded-full flex items-center justify-center text-white shrink-0 font-bold text-xs shadow-xs ${role === "teacher"
-                          ? "bg-[#C86446]"
-                          : role === "student"
-                            ? "bg-[#4F6B58]"
-                            : "bg-[#1E1C1A]"
+                        ? "bg-[#C86446]"
+                        : role === "student"
+                          ? "bg-[#4F6B58]"
+                          : "bg-[#1E1C1A]"
                         }`}
                     >
                       {role === "teacher" ? (
@@ -1125,8 +1125,8 @@ export default function DashboardPage() {
                         type="button"
                         onClick={() => handleSelectGrade(gr)}
                         className={`py-1 rounded text-center transition-all cursor-pointer ${selectedGrade === gr
-                            ? "bg-white text-[#C86446] shadow-xs"
-                            : "text-stone-500 hover:text-stone-900"
+                          ? "bg-white text-[#C86446] shadow-xs"
+                          : "text-stone-500 hover:text-stone-900"
                           }`}
                       >
                         K{gr}
@@ -1144,8 +1144,8 @@ export default function DashboardPage() {
                           type="button"
                           onClick={() => handleSelectClass(cl)}
                           className={`py-1 rounded-md text-center border transition-all cursor-pointer ${isCurrentClass
-                              ? "bg-[#C86446] text-white border-[#C86446] shadow-xs"
-                              : "bg-white text-stone-700 border-[#EAE5DC] hover:border-[#C86446] hover:bg-[#FAF8F5]"
+                            ? "bg-[#C86446] text-white border-[#C86446] shadow-xs"
+                            : "bg-white text-stone-700 border-[#EAE5DC] hover:border-[#C86446] hover:bg-[#FAF8F5]"
                             }`}
                         >
                           {cl.name.replace("Lớp ", "")}
@@ -1202,8 +1202,8 @@ export default function DashboardPage() {
                       setIsMobileSidebarOpen(false);
                     }}
                     className={`w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-xs font-medium transition-all cursor-pointer ${activeNav === "portfolio"
-                        ? "bg-[#F5F2EB] text-[#1E1C1A] font-semibold"
-                        : "text-stone-600 hover:bg-[#FAF8F5] hover:text-stone-900"
+                      ? "bg-[#F5F2EB] text-[#1E1C1A] font-semibold"
+                      : "text-stone-600 hover:bg-[#FAF8F5] hover:text-stone-900"
                       }`}
                   >
                     <span className="flex items-center gap-2">
@@ -1223,8 +1223,8 @@ export default function DashboardPage() {
                     setIsMobileSidebarOpen(false);
                   }}
                   className={`w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-xs font-medium transition-all cursor-pointer ${activeNav === "topics"
-                      ? "bg-[#F5F2EB] text-[#1E1C1A] font-semibold"
-                      : "text-stone-600 hover:bg-[#FAF8F5] hover:text-stone-900"
+                    ? "bg-[#F5F2EB] text-[#1E1C1A] font-semibold"
+                    : "text-stone-600 hover:bg-[#FAF8F5] hover:text-stone-900"
                     }`}
                 >
                   <span className="flex items-center gap-2">
@@ -1244,8 +1244,8 @@ export default function DashboardPage() {
                     setIsMobileSidebarOpen(false);
                   }}
                   className={`w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-xs font-medium transition-all cursor-pointer ${activeNav === "rubric"
-                      ? "bg-[#F5F2EB] text-[#1E1C1A] font-semibold"
-                      : "text-stone-600 hover:bg-[#FAF8F5] hover:text-stone-900"
+                    ? "bg-[#F5F2EB] text-[#1E1C1A] font-semibold"
+                    : "text-stone-600 hover:bg-[#FAF8F5] hover:text-stone-900"
                     }`}
                 >
                   <span className="flex items-center gap-2">
@@ -1264,8 +1264,8 @@ export default function DashboardPage() {
                     setIsMobileSidebarOpen(false);
                   }}
                   className={`w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-xs font-medium transition-all cursor-pointer ${activeNav === "gallery"
-                      ? "bg-[#F5F2EB] text-[#1E1C1A] font-semibold"
-                      : "text-stone-600 hover:bg-[#FAF8F5] hover:text-stone-900"
+                    ? "bg-[#F5F2EB] text-[#1E1C1A] font-semibold"
+                    : "text-stone-600 hover:bg-[#FAF8F5] hover:text-stone-900"
                     }`}
                 >
                   <span className="flex items-center gap-2">
@@ -1290,8 +1290,8 @@ export default function DashboardPage() {
                       setIsMobileSidebarOpen(false);
                     }}
                     className={`w-full py-2 px-2.5 rounded-lg text-xs font-medium shadow-xs flex items-center justify-center gap-1.5 transition-all ${currentGradeTopics.some((t) => t.isActive)
-                        ? "bg-[#1E1C1A] hover:bg-[#C86446] text-[#FAF8F5] cursor-pointer"
-                        : "bg-stone-200 text-stone-400 cursor-not-allowed"
+                      ? "bg-[#1E1C1A] hover:bg-[#C86446] text-[#FAF8F5] cursor-pointer"
+                      : "bg-stone-200 text-stone-400 cursor-not-allowed"
                       }`}
                     title={
                       currentGradeTopics.length === 0
@@ -1366,11 +1366,10 @@ export default function DashboardPage() {
                         setIsRevisionUpload(false);
                         setIsUploadModalOpen(true);
                       }}
-                      className={`py-1.5 px-2.5 rounded-lg text-xs font-semibold shadow-xs flex items-center gap-1 transition-all ${
-                        currentGradeTopics.some((t) => t.isActive)
+                      className={`py-1.5 px-2.5 rounded-lg text-xs font-semibold shadow-xs flex items-center gap-1 transition-all ${currentGradeTopics.some((t) => t.isActive)
                           ? "bg-[#C86446] text-white active:scale-95 cursor-pointer"
                           : "bg-stone-200 text-stone-400 cursor-not-allowed"
-                      }`}
+                        }`}
                       title="Nộp bài vẽ mới"
                     >
                       <Upload className="w-3.5 h-3.5" />
@@ -1460,8 +1459,8 @@ export default function DashboardPage() {
                             type="button"
                             onClick={() => handleSelectGrade(gr)}
                             className={`px-3 sm:px-3.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer shrink-0 ${selectedGrade === gr
-                                ? "bg-[#C86446] text-white shadow-xs"
-                                : "text-stone-600 hover:bg-stone-200/60"
+                              ? "bg-[#C86446] text-white shadow-xs"
+                              : "text-stone-600 hover:bg-stone-200/60"
                               }`}
                           >
                             Khối {gr}
@@ -1538,8 +1537,8 @@ export default function DashboardPage() {
                                     type="button"
                                     onClick={() => handleToggleTopicStatus(t.id)}
                                     className={`px-2.5 sm:px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer border ${t.isActive
-                                        ? "bg-stone-50 hover:bg-stone-100 text-stone-700 border-stone-300"
-                                        : "bg-[#4F6B58] hover:bg-[#3D5344] text-white border-[#4F6B58]"
+                                      ? "bg-stone-50 hover:bg-stone-100 text-stone-700 border-stone-300"
+                                      : "bg-[#4F6B58] hover:bg-[#3D5344] text-white border-[#4F6B58]"
                                       }`}
                                   >
                                     {t.isActive ? "Đóng nộp" : "Mở nộp"}
@@ -1903,8 +1902,8 @@ export default function DashboardPage() {
                               setMobilePortfolioView("detail");
                             }}
                             className={`group p-2 rounded-xl border transition-all cursor-pointer flex items-center gap-2.5 relative ${isSelected
-                                ? "bg-[#FAF8F5] border-[#C86446] ring-1 ring-[#C86446]/20 shadow-xs"
-                                : "bg-white border-[#EAE5DC] hover:border-stone-300"
+                              ? "bg-[#FAF8F5] border-[#C86446] ring-1 ring-[#C86446]/20 shadow-xs"
+                              : "bg-white border-[#EAE5DC] hover:border-stone-300"
                               }`}
                           >
                             <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-[#F5F2EB] shrink-0 border border-[#EAE5DC]">
@@ -2033,11 +2032,10 @@ export default function DashboardPage() {
                             setReflectionInput(selectedArtwork.selfReflection?.reflectionText || "");
                             setIsReflectionModalOpen(true);
                           }}
-                          className={`px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 shadow-xs cursor-pointer active:scale-95 shrink-0 transition-all ${
-                            selectedArtwork.selfReflection
+                          className={`px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 shadow-xs cursor-pointer active:scale-95 shrink-0 transition-all ${selectedArtwork.selfReflection
                               ? "bg-emerald-50 border border-emerald-200 text-emerald-800 hover:bg-emerald-100"
                               : "bg-[#F6EDE8] border border-[#E8D7CF] text-[#C86446] hover:bg-[#F0DFD7]"
-                          }`}
+                            }`}
                           title="Tự đánh giá bài vẽ của em"
                         >
                           <Award className="w-3.5 h-3.5" />
@@ -2054,11 +2052,10 @@ export default function DashboardPage() {
                         <button
                           type="button"
                           onClick={() => setIsEvaluationDrawerOpen(!isEvaluationDrawerOpen)}
-                          className={`px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold border flex items-center gap-1 sm:gap-1.5 transition-all shadow-xs cursor-pointer active:scale-95 shrink-0 ${
-                            isEvaluationDrawerOpen
+                          className={`px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold border flex items-center gap-1 sm:gap-1.5 transition-all shadow-xs cursor-pointer active:scale-95 shrink-0 ${isEvaluationDrawerOpen
                               ? "bg-[#C86446] text-white border-[#C86446]"
                               : "bg-white text-stone-700 border-[#E8D7CF] hover:bg-[#F6EDE8] hover:text-[#C86446]"
-                          }`}
+                            }`}
                         >
                           <FileText className="w-3.5 h-3.5" />
                           <span className="hidden md:inline">{isEvaluationDrawerOpen ? "Thu gọn bảng điểm" : "Bảng chấm điểm"}</span>
@@ -2083,11 +2080,10 @@ export default function DashboardPage() {
                                   setIsRevisionUpload(true);
                                   setIsUploadModalOpen(true);
                                 }}
-                                className={`px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold shadow-xs flex items-center gap-1 sm:gap-1.5 transition-all shrink-0 active:scale-95 ${
-                                  isTopicActive
+                                className={`px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold shadow-xs flex items-center gap-1 sm:gap-1.5 transition-all shrink-0 active:scale-95 ${isTopicActive
                                     ? "bg-[#4F6B58] hover:bg-[#3D5344] text-white cursor-pointer"
                                     : "bg-stone-200 text-stone-400 cursor-not-allowed"
-                                }`}
+                                  }`}
                                 title={!artworkTopic ? "Chưa có chủ đề bài học" : !isTopicActive ? "Chủ đề này đã đóng nộp bài" : ""}
                               >
                                 <Upload className="w-3.5 h-3.5" />
@@ -2112,16 +2108,16 @@ export default function DashboardPage() {
                           (role === "student" &&
                             selectedArtwork.studentId === currentStudent?.id &&
                             selectedArtwork.feedback?.status === "pending_moderation")) && (
-                          <button
-                            type="button"
-                            onClick={() => handleDeleteArtwork(selectedArtwork.id)}
-                            className="px-2 sm:px-2.5 py-1.5 rounded-lg text-xs font-medium border border-rose-200 bg-white hover:bg-rose-50 text-rose-600 flex items-center gap-1 shadow-xs cursor-pointer transition-colors shrink-0 active:scale-95"
-                            title="Xóa tác phẩm này"
-                          >
-                            <Trash2 className="w-3.5 h-3.5 text-rose-500" />
-                            <span className="hidden sm:inline">Xóa</span>
-                          </button>
-                        )}
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteArtwork(selectedArtwork.id)}
+                              className="px-2 sm:px-2.5 py-1.5 rounded-lg text-xs font-medium border border-rose-200 bg-white hover:bg-rose-50 text-rose-600 flex items-center gap-1 shadow-xs cursor-pointer transition-colors shrink-0 active:scale-95"
+                              title="Xóa tác phẩm này"
+                            >
+                              <Trash2 className="w-3.5 h-3.5 text-rose-500" />
+                              <span className="hidden sm:inline">Xóa</span>
+                            </button>
+                          )}
                       </div>
                     )}
                   </div>
@@ -2281,8 +2277,8 @@ export default function DashboardPage() {
                       {selectedArtwork?.feedback?.referenceScore !== undefined && (
                         <span
                           className={`text-xs font-bold px-2.5 py-0.5 rounded-full border ${selectedArtwork.feedback.referenceScore > 0
-                              ? "bg-[#F6EDE8] text-[#C86446] border-[#E8D7CF]"
-                              : "bg-rose-50 text-rose-700 border-rose-200"
+                            ? "bg-[#F6EDE8] text-[#C86446] border-[#E8D7CF]"
+                            : "bg-rose-50 text-rose-700 border-rose-200"
                             }`}
                         >
                           {selectedArtwork.feedback.referenceScore > 0
@@ -2413,14 +2409,14 @@ export default function DashboardPage() {
                                             type="button"
                                             onClick={() => handleUpdateCriterionLevel(crit.criterionId, lvl)}
                                             className={`px-1.5 py-0.5 text-[9px] rounded font-semibold transition-all cursor-pointer ${isCurrent
-                                                ? lvl === "Xuất sắc"
-                                                  ? "bg-purple-100 text-purple-800 font-bold"
-                                                  : lvl === "Tốt"
-                                                    ? "bg-blue-100 text-blue-800 font-bold"
-                                                    : lvl === "Đạt"
-                                                      ? "bg-emerald-100 text-emerald-800 font-bold"
-                                                      : "bg-amber-100 text-amber-800 font-bold"
-                                                : "text-stone-400 hover:text-stone-700 hover:bg-stone-50"
+                                              ? lvl === "Xuất sắc"
+                                                ? "bg-purple-100 text-purple-800 font-bold"
+                                                : lvl === "Tốt"
+                                                  ? "bg-blue-100 text-blue-800 font-bold"
+                                                  : lvl === "Đạt"
+                                                    ? "bg-emerald-100 text-emerald-800 font-bold"
+                                                    : "bg-amber-100 text-amber-800 font-bold"
+                                              : "text-stone-400 hover:text-stone-700 hover:bg-stone-50"
                                               }`}
                                           >
                                             {lvl}
@@ -2431,12 +2427,12 @@ export default function DashboardPage() {
                                   ) : (
                                     <span
                                       className={`text-[9px] px-2 py-0.5 rounded-full font-semibold ${crit.level === "Xuất sắc"
-                                          ? "bg-purple-100 text-purple-700"
-                                          : crit.level === "Tốt"
-                                            ? "bg-blue-100 text-blue-700"
-                                            : crit.level === "Đạt"
-                                              ? "bg-emerald-100 text-emerald-700"
-                                              : "bg-amber-100 text-amber-700"
+                                        ? "bg-purple-100 text-purple-700"
+                                        : crit.level === "Tốt"
+                                          ? "bg-blue-100 text-blue-700"
+                                          : crit.level === "Đạt"
+                                            ? "bg-emerald-100 text-emerald-700"
+                                            : "bg-amber-100 text-amber-700"
                                         }`}
                                     >
                                       {crit.level}
@@ -2548,10 +2544,10 @@ export default function DashboardPage() {
                               type="button"
                               onClick={() => handleToggleExhibition(selectedArtwork.id)}
                               className={`px-3 py-1 rounded-lg text-xs font-medium border transition-all flex items-center gap-1.5 cursor-pointer ${selectedArtwork.isPublic
-                                  ? "bg-[#F5F2EB] border-[#E2DBD0] text-stone-700 hover:bg-[#EAE5DC]"
-                                  : selectedArtwork.feedback?.status !== "approved"
-                                    ? "bg-stone-100 border-stone-200 text-stone-400 cursor-not-allowed"
-                                    : "bg-[#F6EDE8] border-[#E8D7CF] text-[#C86446] hover:bg-[#F0DFD7]"
+                                ? "bg-[#F5F2EB] border-[#E2DBD0] text-stone-700 hover:bg-[#EAE5DC]"
+                                : selectedArtwork.feedback?.status !== "approved"
+                                  ? "bg-stone-100 border-stone-200 text-stone-400 cursor-not-allowed"
+                                  : "bg-[#F6EDE8] border-[#E8D7CF] text-[#C86446] hover:bg-[#F0DFD7]"
                                 }`}
                               title={
                                 selectedArtwork.feedback?.status !== "approved"
@@ -2630,7 +2626,7 @@ export default function DashboardPage() {
                         <span>Góc tự đánh giá của học sinh</span>
                       </h4>
                       <p className="text-xs text-amber-800 leading-relaxed">
-                        {galleryModalArtwork.selfReflection?.reflectionText || "Tác phẩm thể hiện nỗ lực sáng tạo tiến bộ của học sinh."}
+                        {galleryModalArtwork.selfReflection?.reflectionText || "Chưa tự đánh giá."}
                       </p>
                     </div>
                   </div>
@@ -2880,8 +2876,8 @@ export default function DashboardPage() {
                         <div className="flex items-center gap-2 self-start sm:self-auto">
                           <span
                             className={`text-xs font-bold px-2.5 py-0.5 rounded-full border ${totalNewCriteriaWeight === 100
-                                ? "bg-emerald-50 text-emerald-800 border-emerald-200"
-                                : "bg-amber-50 text-amber-800 border-amber-200 animate-pulse"
+                              ? "bg-emerald-50 text-emerald-800 border-emerald-200"
+                              : "bg-amber-50 text-amber-800 border-amber-200 animate-pulse"
                               }`}
                           >
                             Tổng: {totalNewCriteriaWeight}% {totalNewCriteriaWeight === 100 ? "✓" : "(Cần = 100%)"}
@@ -2994,7 +2990,7 @@ export default function DashboardPage() {
                       type="password"
                       maxLength={10}
                       autoFocus
-                      placeholder="Nhập mã PIN (Mặc định: 123456)"
+                      placeholder="Nhập mã PIN Giáo viên"
                       value={teacherPinInput}
                       onChange={(e) => {
                         setTeacherPinInput(e.target.value);
@@ -3007,9 +3003,6 @@ export default function DashboardPage() {
                         {teacherPinError}
                       </p>
                     )}
-                    <p className="text-[10px] text-stone-400 mt-1.5 text-center italic">
-                      Gợi ý trải nghiệm Ngày hội 2026: Mã PIN là <strong>123456</strong>
-                    </p>
                   </div>
 
                   <div className="flex items-center gap-2 pt-1">
@@ -3067,8 +3060,8 @@ export default function DashboardPage() {
                     type="button"
                     onClick={() => setRosterTab("list")}
                     className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 shrink-0 ${rosterTab === "list"
-                        ? "bg-[#C86446] text-white shadow-xs"
-                        : "bg-stone-100 text-stone-600 hover:bg-stone-200"
+                      ? "bg-[#C86446] text-white shadow-xs"
+                      : "bg-stone-100 text-stone-600 hover:bg-stone-200"
                       }`}
                   >
                     <Users className="w-3.5 h-3.5" />
@@ -3078,8 +3071,8 @@ export default function DashboardPage() {
                     type="button"
                     onClick={() => setRosterTab("add")}
                     className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 shrink-0 ${rosterTab === "add"
-                        ? "bg-[#C86446] text-white shadow-xs"
-                        : "bg-stone-100 text-stone-600 hover:bg-stone-200"
+                      ? "bg-[#C86446] text-white shadow-xs"
+                      : "bg-stone-100 text-stone-600 hover:bg-stone-200"
                       }`}
                   >
                     <UserPlus className="w-3.5 h-3.5" />
@@ -3089,8 +3082,8 @@ export default function DashboardPage() {
                     type="button"
                     onClick={() => setRosterTab("batch")}
                     className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 shrink-0 ${rosterTab === "batch"
-                        ? "bg-[#C86446] text-white shadow-xs"
-                        : "bg-stone-100 text-stone-600 hover:bg-stone-200"
+                      ? "bg-[#C86446] text-white shadow-xs"
+                      : "bg-stone-100 text-stone-600 hover:bg-stone-200"
                       }`}
                   >
                     <FileText className="w-3.5 h-3.5" />
@@ -3146,8 +3139,8 @@ export default function DashboardPage() {
                                     <td className="py-2 px-3 text-center">
                                       <span
                                         className={`px-2 py-0.5 rounded-full font-bold text-[10.5px] ${submittedCount > 0
-                                            ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                                            : "bg-stone-100 text-stone-400"
+                                          ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                                          : "bg-stone-100 text-stone-400"
                                           }`}
                                       >
                                         {submittedCount} bài
