@@ -478,7 +478,7 @@ export function LoginPage({
               <div className="space-y-3">
                 <div className="p-3.5 rounded-xl bg-[#FAF6EE] border border-[#E8DFC9] text-center space-y-1">
                   <p className="text-xs text-[#5C5348] leading-relaxed">
-                    Thưởng lãm các tác phẩm mĩ thuật xuất sắc của học sinh THCS.
+                    Tham quan các tác phẩm mĩ thuật xuất sắc của học sinh.
                   </p>
                   <p className="text-[10.5px] text-[#8C7F6E]">
                     Mở cửa tự do • Không cần mật khẩu

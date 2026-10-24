@@ -195,7 +195,8 @@ function createPlaqueTexture(title: string, studentName: string, classId: string
 
   ctx.font = "bold 18px sans-serif";
   ctx.fillStyle = "#5E4403";
-  ctx.fillText(`Lớp ${classId.toUpperCase()}`, 256, 150);
+  const formattedClass = (classId || "").replace(/^class_/i, "").toUpperCase();
+  ctx.fillText(formattedClass ? `Lớp ${formattedClass}` : "", 256, 150);
 
   const tex = new THREE.CanvasTexture(canvas);
   tex.colorSpace = THREE.SRGBColorSpace;
@@ -339,6 +340,7 @@ export function Gallery3DView({
     hitboxes: THREE.Mesh[];
     keys: { [key: string]: boolean };
     isDragging: boolean;
+    cameraTouchId: number | null;
     mouseStartPos: { x: number; y: number };
     prevMousePos: { x: number; y: number };
     yaw: number;
@@ -361,6 +363,7 @@ export function Gallery3DView({
     hitboxes: [],
     keys: {},
     isDragging: false,
+    cameraTouchId: null,
     mouseStartPos: { x: 0, y: 0 },
     prevMousePos: { x: 0, y: 0 },
     yaw: 0,
@@ -547,9 +550,9 @@ export function Gallery3DView({
     scene.add(rightTrack);
 
     // =======================================================================
-    // 3b. ĐÈN LED ÂM TRẦN TRÒN DUY NHẤT Ở TRUNG TÂM PHÒNG (RECESSED LED DOWNLIGHT)
-    // Thiết kế tối giản, tinh tế, viền tròn màu trắng sứ nguyên khối (không vạch đen)
-    // Đặt DUY NHẤT 1 đèn ở giữa trần nhà (X = 0, Z = 0) theo đúng yêu cầu
+    // 3b. HỆ THỐNG ĐÈN LED ÂM TRẦN PHÂN BỔ DỌC HÀNH LANG (SPAWN DỰA THEO CHIỀU DÀI PHÒNG)
+    // Tự động tính toán khoảng cách phù hợp (~7.0m), spawn đèn trần đều đặn
+    // khi phòng triển lãm kéo giãn dài ra theo số lượng tranh nộp của học sinh
     // =======================================================================
     const downlightWhiteMat = new THREE.MeshLambertMaterial({ color: 0xFAFAFA });
     const downlightDiffuserMat = new THREE.MeshBasicMaterial({ color: 0xFFFAF0, side: THREE.DoubleSide });
@@ -593,26 +596,39 @@ export function Gallery3DView({
       return g;
     };
 
-    // 1. Quầng sáng phát quang mềm mại trên mặt trần
-    const halo = new THREE.Mesh(new THREE.PlaneGeometry(1.2, 1.2), haloMat);
-    halo.rotation.x = Math.PI / 2;
-    halo.position.set(0, wallHeight - 0.001, 0);
-    scene.add(halo);
+    // Phân bổ toạ độ Z cho đèn trần (cách nhau ~6.0m, đối xứng từ tâm Z=0)
+    const downlightInterval = 6.0;
+    const downlightZPositions: number[] = [0];
+    const maxZ = roomLength / 2 - 2.8;
+    for (let offset = downlightInterval; offset <= maxZ; offset += downlightInterval) {
+      downlightZPositions.push(offset);
+      downlightZPositions.push(-offset);
+    }
+    downlightZPositions.sort((a, b) => a - b);
 
-    // 2. DUY NHẤT 1 đèn LED âm trần tròn tại chính giữa tâm trần (X = 0, Z = 0)
-    const centralDl = createRecessedDownlightMesh();
-    centralDl.position.set(0, wallHeight, 0);
-    scene.add(centralDl);
+    // Spawn đèn trần tại từng toạ độ Z đã tính toán
+    downlightZPositions.forEach((zPos) => {
+      // 1. Quầng sáng phát quang mềm mại trên mặt trần
+      const halo = new THREE.Mesh(new THREE.PlaneGeometry(1.3, 1.3), haloMat);
+      halo.rotation.x = Math.PI / 2;
+      halo.position.set(0, wallHeight - 0.001, zPos);
+      scene.add(halo);
 
-    // 3. Nguồn sáng Spotlight chĩa thẳng từ mặt đèn xuống sàn nhà trung tâm
-    const downSpot = new THREE.SpotLight(0xFFF9EE, 4.5, 12, Math.PI / 3.0, 0.5, 1.2);
-    downSpot.position.set(0, wallHeight - 0.01, 0);
-    const downTarget = new THREE.Object3D();
-    downTarget.position.set(0, 0, 0);
-    scene.add(downTarget);
-    downSpot.target = downTarget;
-    downTarget.updateMatrixWorld();
-    scene.add(downSpot);
+      // 2. Mô hình đèn LED âm trần tròn tại (X = 0, Z = zPos)
+      const dlMesh = createRecessedDownlightMesh();
+      dlMesh.position.set(0, wallHeight, zPos);
+      scene.add(dlMesh);
+
+      // 3. Nguồn sáng Spotlight chĩa thẳng từ mặt đèn xuống sàn nhà trung tâm
+      const downSpot = new THREE.SpotLight(0xFFF9EE, 3.2, 8.5, Math.PI / 3.0, 0.5, 1.2);
+      downSpot.position.set(0, wallHeight - 0.01, zPos);
+      const downTarget = new THREE.Object3D();
+      downTarget.position.set(0, 0, zPos);
+      scene.add(downTarget);
+      downSpot.target = downTarget;
+      downTarget.updateMatrixWorld();
+      scene.add(downSpot);
+    });
 
     // =======================================================================
     // 4. VIỀN ĐEN GÓC TƯỜNG, NẸP TRẦN VÀ PHÀO CHÂN TƯỜNG (ARCHITECTURAL ACCENTS)
@@ -1141,21 +1157,34 @@ export function Gallery3DView({
       }
     };
 
-    // Sự kiện Touch cho màn hình cảm ứng di động
+    // Sự kiện Touch cho màn hình cảm ứng di động (Hỗ trợ đa điểm: Vừa giữ nút di chuyển vừa vuốt xoay góc nhìn)
     const handleTouchStart = (e: TouchEvent) => {
-      if (e.touches.length === 1) {
+      // Nếu chưa có ngón tay nào đang xoay camera, ghi nhận ngón tay mới chạm vào canvas
+      if (stateRef.current.cameraTouchId === null && e.changedTouches.length > 0) {
+        const touch = e.changedTouches[0];
+        stateRef.current.cameraTouchId = touch.identifier;
         stateRef.current.isDragging = true;
-        stateRef.current.mouseStartPos = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-        stateRef.current.prevMousePos = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+        stateRef.current.mouseStartPos = { x: touch.clientX, y: touch.clientY };
+        stateRef.current.prevMousePos = { x: touch.clientX, y: touch.clientY };
       }
     };
 
     const handleTouchMove = (e: TouchEvent) => {
-      if (!stateRef.current.isDragging || e.touches.length !== 1) return;
+      if (!stateRef.current.isDragging || stateRef.current.cameraTouchId === null) return;
 
-      const dx = e.touches[0].clientX - stateRef.current.prevMousePos.x;
-      const dy = e.touches[0].clientY - stateRef.current.prevMousePos.y;
-      stateRef.current.prevMousePos = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+      // Tìm đúng ngón tay điều khiển camera trong danh sách touch
+      let cameraTouch: Touch | null = null;
+      for (let i = 0; i < e.touches.length; i++) {
+        if (e.touches[i].identifier === stateRef.current.cameraTouchId) {
+          cameraTouch = e.touches[i];
+          break;
+        }
+      }
+      if (!cameraTouch) return;
+
+      const dx = cameraTouch.clientX - stateRef.current.prevMousePos.x;
+      const dy = cameraTouch.clientY - stateRef.current.prevMousePos.y;
+      stateRef.current.prevMousePos = { x: cameraTouch.clientX, y: cameraTouch.clientY };
 
       const rotSpeed = 0.0040;
       stateRef.current.targetYaw -= dx * rotSpeed;
@@ -1163,37 +1192,44 @@ export function Gallery3DView({
     };
 
     const handleTouchEnd = (e: TouchEvent) => {
-      stateRef.current.isDragging = false;
-      if (e.changedTouches.length === 1) {
-        const touch = e.changedTouches[0];
-        const dragDist = Math.hypot(
-          touch.clientX - stateRef.current.mouseStartPos.x,
-          touch.clientY - stateRef.current.mouseStartPos.y
-        );
+      if (stateRef.current.cameraTouchId === null) return;
 
-        if (dragDist < 10) {
-          const rect = canvas.getBoundingClientRect();
-          const x = ((touch.clientX - rect.left) / rect.width) * 2 - 1;
-          const y = -((touch.clientY - rect.top) / rect.height) * 2 + 1;
+      for (let i = 0; i < e.changedTouches.length; i++) {
+        const touch = e.changedTouches[i];
+        if (touch.identifier === stateRef.current.cameraTouchId) {
+          stateRef.current.isDragging = false;
+          stateRef.current.cameraTouchId = null;
 
-          const state = stateRef.current;
-          if (!state.camera || !state.scene) return;
+          const dragDist = Math.hypot(
+            touch.clientX - stateRef.current.mouseStartPos.x,
+            touch.clientY - stateRef.current.mouseStartPos.y
+          );
 
-          state.raycaster.setFromCamera(new THREE.Vector2(x, y), state.camera);
-          const intersects = state.raycaster.intersectObjects(state.hitboxes, false);
+          if (dragDist < 10) {
+            const rect = canvas.getBoundingClientRect();
+            const x = ((touch.clientX - rect.left) / rect.width) * 2 - 1;
+            const y = -((touch.clientY - rect.top) / rect.height) * 2 + 1;
 
-          if (intersects.length > 0) {
-            const hit = intersects[0].object;
-            const art = hit.userData.artwork as Artwork;
-            const targetIdx = hit.userData.index as number;
-            if (art) {
-              if (focusedArtRef.current?.id === art.id) {
-                onSelectArtworkRef.current(art);
-              } else {
-                focusOnArtworkByIndex(targetIdx);
+            const state = stateRef.current;
+            if (!state.camera || !state.scene) return;
+
+            state.raycaster.setFromCamera(new THREE.Vector2(x, y), state.camera);
+            const intersects = state.raycaster.intersectObjects(state.hitboxes, false);
+
+            if (intersects.length > 0) {
+              const hit = intersects[0].object;
+              const art = hit.userData.artwork as Artwork;
+              const targetIdx = hit.userData.index as number;
+              if (art) {
+                if (focusedArtRef.current?.id === art.id) {
+                  onSelectArtworkRef.current(art);
+                } else {
+                  focusOnArtworkByIndex(targetIdx);
+                }
               }
             }
           }
+          break;
         }
       }
     };
@@ -1220,6 +1256,7 @@ export function Gallery3DView({
     canvas.addEventListener("touchstart", handleTouchStart, { passive: true });
     canvas.addEventListener("touchmove", handleTouchMove, { passive: true });
     canvas.addEventListener("touchend", handleTouchEnd);
+    canvas.addEventListener("touchcancel", handleTouchEnd);
 
     const capturedState = stateRef.current;
 
@@ -1234,6 +1271,7 @@ export function Gallery3DView({
       canvas.removeEventListener("touchstart", handleTouchStart);
       canvas.removeEventListener("touchmove", handleTouchMove);
       canvas.removeEventListener("touchend", handleTouchEnd);
+      canvas.removeEventListener("touchcancel", handleTouchEnd);
 
       scene.clear();
       renderer.dispose();
@@ -1487,7 +1525,7 @@ export function Gallery3DView({
                 {focusedArtwork.title}
               </h3>
               <p className="text-[11px] text-stone-300 truncate">
-                Tác giả: <strong>{focusedArtwork.studentName}</strong> • Lớp {focusedArtwork.classId.toUpperCase()}
+                Tác giả: <strong>{focusedArtwork.studentName}</strong> • Lớp {(focusedArtwork.classId || "").replace(/^class_/i, "").toUpperCase()}
               </p>
             </div>
             <button
@@ -1504,69 +1542,69 @@ export function Gallery3DView({
 
       {/* =====================================================================
           THANH ĐIỀU HƯỚNG NHANH CÁC BỨC TRANH Ở ĐÁY MÀN HÌNH (QUICK JUMP BAR)
-          Portrait: Căn giữa đáy màn hình
-          Landscape: Tự động dạt về góc dưới bên phải để KHÔNG dính chùm với D-pad góc trái
+          CHỈ HIỂN THỊ TRÊN MÁY TÍNH (DESKTOP) - ẨN HOÀN TOÀN TRÊN ĐIỆN THOẠI
           ===================================================================== */}
-      <div className="absolute bottom-3 sm:bottom-4 left-3 right-3 landscape:left-auto landscape:right-3 flex items-center justify-center landscape:justify-end pointer-events-none z-20">
-        <div className="bg-stone-900/90 backdrop-blur-md px-2.5 sm:px-3 py-1.5 rounded-2xl border border-stone-700/60 shadow-xl pointer-events-auto flex items-center gap-1.5 sm:gap-2 max-w-full landscape:max-w-[calc(100vw-160px)] overflow-x-auto">
-          <button
-            onClick={() => focusOnArtworkByIndex(Math.max(0, activeArtworkIndex - 1))}
-            disabled={activeArtworkIndex <= 0}
-            className="w-7 h-7 rounded-lg bg-stone-800 hover:bg-stone-700 disabled:opacity-25 text-white flex items-center justify-center cursor-pointer transition-all shrink-0"
-            title="Tranh trước"
-          >
-            <ChevronLeft className="w-4 h-4" />
-          </button>
+      {!isTouchDevice && (
+        <div className="hidden lg:flex absolute bottom-4 right-4 items-center justify-end pointer-events-none z-20">
+          <div className="bg-stone-900/90 backdrop-blur-md px-3 py-1.5 rounded-2xl border border-stone-700/60 shadow-xl pointer-events-auto flex items-center gap-2 max-w-md overflow-x-auto">
+            <button
+              onClick={() => focusOnArtworkByIndex(Math.max(0, activeArtworkIndex - 1))}
+              disabled={activeArtworkIndex <= 0}
+              className="w-7 h-7 rounded-lg bg-stone-800 hover:bg-stone-700 disabled:opacity-25 text-white flex items-center justify-center cursor-pointer transition-all shrink-0"
+              title="Tranh trước"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
 
-          <div className="flex items-center gap-1.5 overflow-x-auto max-w-[calc(100vw-160px)] sm:max-w-md landscape:max-w-[calc(100vw-240px)] py-1">
-            {displayArtworks.map((art, idx) => (
-              <button
-                key={art.id}
-                onClick={() => focusOnArtworkByIndex(idx)}
-                className={`px-2.5 py-1 rounded-lg text-[10.5px] sm:text-[11px] font-medium transition-all cursor-pointer shrink-0 truncate max-w-[105px] sm:max-w-[130px] ${activeArtworkIndex === idx
-                  ? "bg-amber-600 text-white font-bold shadow-xs scale-105"
-                  : "bg-stone-800/80 text-stone-300 hover:bg-stone-700 hover:text-white"
-                  }`}
-                title={`${art.title} - ${art.studentName}`}
-              >
-                {idx + 1}. {art.title}
-              </button>
-            ))}
+            <div className="flex items-center gap-1.5 overflow-x-auto max-w-sm py-1">
+              {displayArtworks.map((art, idx) => (
+                <button
+                  key={art.id}
+                  onClick={() => focusOnArtworkByIndex(idx)}
+                  className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all cursor-pointer shrink-0 truncate max-w-[130px] ${activeArtworkIndex === idx
+                    ? "bg-amber-600 text-white font-bold shadow-xs scale-105"
+                    : "bg-stone-800/80 text-stone-300 hover:bg-stone-700 hover:text-white"
+                    }`}
+                  title={`${art.title} - ${art.studentName}`}
+                >
+                  {idx + 1}. {art.title}
+                </button>
+              ))}
+            </div>
+
+            <button
+              onClick={() => focusOnArtworkByIndex(Math.min(displayArtworks.length - 1, activeArtworkIndex + 1))}
+              disabled={activeArtworkIndex >= displayArtworks.length - 1}
+              className="w-7 h-7 rounded-lg bg-stone-800 hover:bg-stone-700 disabled:opacity-25 text-white flex items-center justify-center cursor-pointer transition-all shrink-0"
+              title="Tranh tiếp theo"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
           </div>
-
-          <button
-            onClick={() => focusOnArtworkByIndex(Math.min(displayArtworks.length - 1, activeArtworkIndex + 1))}
-            disabled={activeArtworkIndex >= displayArtworks.length - 1}
-            className="w-7 h-7 rounded-lg bg-stone-800 hover:bg-stone-700 disabled:opacity-25 text-white flex items-center justify-center cursor-pointer transition-all shrink-0"
-            title="Tranh tiếp theo"
-          >
-            <ChevronRight className="w-4 h-4" />
-          </button>
         </div>
-      </div>
+      )}
 
       {/* =====================================================================
           NÚT ĐIỀU HƯỚNG ẢO CHO THIẾT BỊ DI ĐỘNG (MOBILE D-PAD)
           CHỈ HIỂN THỊ TRÊN THIẾT BỊ CẢM ỨNG DI ĐỘNG (ẨN HOÀN TOÀN TRÊN MÁY TÍNH / DESKTOP)
-          Portrait: Nằm góc trái ở trên thanh chọn ảnh
-          Landscape: Nằm góc dưới bên trái, tách rời hoàn toàn với thanh chọn ảnh bên phải
+          Vị trí góc dưới bên trái cố định mượt mà (cả dọc và xoay ngang)
           ===================================================================== */}
       {isTouchDevice && (
-        <div className="absolute bottom-20 landscape:bottom-3 left-3 pointer-events-auto z-20 flex flex-col items-center gap-1 bg-stone-900/85 p-1.5 sm:p-2 rounded-2xl border border-stone-700/60 backdrop-blur-md shadow-2xl select-none lg:hidden">
+        <div className="absolute bottom-4 left-4 pointer-events-auto z-20 flex flex-col items-center gap-1.5 bg-stone-900/90 p-2 rounded-2xl border border-stone-700/60 backdrop-blur-md shadow-2xl select-none lg:hidden">
           <button
             type="button"
             {...createWalkHandlers("w")}
-            className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-stone-800 hover:bg-stone-700 active:bg-amber-600 active:scale-95 text-white flex items-center justify-center transition-transform select-none shadow-sm cursor-pointer"
+            className="w-11 h-11 rounded-xl bg-stone-800 hover:bg-stone-700 active:bg-amber-600 active:scale-95 text-white flex items-center justify-center transition-transform select-none shadow-sm cursor-pointer"
             title="Tiến lên"
             aria-label="Tiến lên"
           >
             <ArrowUp className="w-5 h-5 pointer-events-none" />
           </button>
-          <div className="flex gap-1">
+          <div className="flex gap-1.5">
             <button
               type="button"
               {...createWalkHandlers("a")}
-              className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-stone-800 hover:bg-stone-700 active:bg-amber-600 active:scale-95 text-white flex items-center justify-center transition-transform select-none shadow-sm cursor-pointer"
+              className="w-11 h-11 rounded-xl bg-stone-800 hover:bg-stone-700 active:bg-amber-600 active:scale-95 text-white flex items-center justify-center transition-transform select-none shadow-sm cursor-pointer"
               title="Qua trái"
               aria-label="Qua trái"
             >
@@ -1575,7 +1613,7 @@ export function Gallery3DView({
             <button
               type="button"
               {...createWalkHandlers("s")}
-              className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-stone-800 hover:bg-stone-700 active:bg-amber-600 active:scale-95 text-white flex items-center justify-center transition-transform select-none shadow-sm cursor-pointer"
+              className="w-11 h-11 rounded-xl bg-stone-800 hover:bg-stone-700 active:bg-amber-600 active:scale-95 text-white flex items-center justify-center transition-transform select-none shadow-sm cursor-pointer"
               title="Lùi lại"
               aria-label="Lùi lại"
             >
@@ -1584,7 +1622,7 @@ export function Gallery3DView({
             <button
               type="button"
               {...createWalkHandlers("d")}
-              className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-stone-800 hover:bg-stone-700 active:bg-amber-600 active:scale-95 text-white flex items-center justify-center transition-transform select-none shadow-sm cursor-pointer"
+              className="w-11 h-11 rounded-xl bg-stone-800 hover:bg-stone-700 active:bg-amber-600 active:scale-95 text-white flex items-center justify-center transition-transform select-none shadow-sm cursor-pointer"
               title="Qua phải"
               aria-label="Qua phải"
             >

@@ -225,3 +225,41 @@ test("Chống sập trang khi gặp QuotaExceededError: safeLocalStorageSet bắ
   assert.equal(removedKey, "artprogress_artworks", "Phải tự động xóa key artprogress_artworks để giải phóng dung lượng cho trình duyệt");
 });
 
+test("Phòng triển lãm 3D: Định dạng mã lớp học sinh xóa sạch tiền tố CLASS_ / class_", () => {
+  const cleanClassId = (classId) => (classId || "").replace(/^class_/i, "").toUpperCase();
+
+  assert.equal(cleanClassId("class_6a1"), "6A1");
+  assert.equal(cleanClassId("CLASS_6A1"), "6A1");
+  assert.equal(cleanClassId("class_7a2"), "7A2");
+  assert.equal(cleanClassId("CLASS_8A3"), "8A3");
+  assert.equal(cleanClassId("9A1"), "9A1");
+  assert.equal(cleanClassId(""), "");
+});
+
+test("Phòng triển lãm 3D: Tự động tính toán và spawn đèn trần đều đặn khi phòng kéo giãn theo số lượng tranh", () => {
+  function computeDownlightPositions(roomLength, interval = 6.0) {
+    const positions = [0];
+    const maxZ = roomLength / 2 - 2.8;
+    for (let offset = interval; offset <= maxZ; offset += interval) {
+      positions.push(offset);
+      positions.push(-offset);
+    }
+    return positions.sort((a, b) => a - b);
+  }
+
+  // Phòng tiêu chuẩn 20m: Có 3 đèn tại Z = -6, 0, 6
+  const lights20m = computeDownlightPositions(20);
+  assert.equal(lights20m.length, 3);
+  assert.deepEqual(lights20m, [-6, 0, 6]);
+
+  // Phòng kéo dài 32m: Có 5 đèn tại Z = -12, -6, 0, 6, 12
+  const lights32m = computeDownlightPositions(32);
+  assert.equal(lights32m.length, 5);
+  assert.deepEqual(lights32m, [-12, -6, 0, 6, 12]);
+
+  // Phòng kéo dài 48m: Có 7 đèn
+  const lights48m = computeDownlightPositions(48);
+  assert.equal(lights48m.length, 7);
+  assert.deepEqual(lights48m, [-18, -12, -6, 0, 6, 12, 18]);
+});
+
