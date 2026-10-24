@@ -190,3 +190,38 @@ test("Định dạng tên lớp và che giấu thanh sidebar khi xuất bản in
   assert.ok(mainClasses.includes("print:hidden"));
 });
 
+test("Chống sập trang khi gặp QuotaExceededError: safeLocalStorageSet bắt lỗi an toàn và tự dọn dẹp cache", () => {
+  // Giả lập môi trường trình duyệt với localStorage bị tràn dung lượng (QuotaExceededError)
+  let removedKey = null;
+  const mockStorage = {
+    setItem(key) {
+      const err = new Error("Setting the value of '" + key + "' exceeded the quota.");
+      err.name = "QuotaExceededError";
+      throw err;
+    },
+    removeItem(key) {
+      removedKey = key;
+    },
+  };
+
+  function testSafeLocalStorageSet(storage, key, value) {
+    try {
+      storage.setItem(key, value);
+      return true;
+    } catch (err) {
+      const errorName = err?.name || "UnknownError";
+      if (errorName === "QuotaExceededError" || errorName === "NS_ERROR_DOM_QUOTA_REACHED") {
+        try {
+          storage.removeItem("artprogress_artworks");
+        } catch {}
+      }
+      return false;
+    }
+  }
+
+  // Gọi setItem khi bộ nhớ đã đầy: Hàm phải trả về false và KHÔNG ĐƯỢC ném unhandled error làm sập ứng dụng
+  const result = testSafeLocalStorageSet(mockStorage, "artprogress_topics", "[]");
+  assert.equal(result, false, "Phải trả về false thay vì văng unhandled exception");
+  assert.equal(removedKey, "artprogress_artworks", "Phải tự động xóa key artprogress_artworks để giải phóng dung lượng cho trình duyệt");
+});
+

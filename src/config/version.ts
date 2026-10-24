@@ -12,4 +12,4 @@
  *   phiên bản này, hệ thống vẫn hoạt động HOÀN TOÀN BÌNH THƯỜNG, không có
  *   bất kỳ lỗi nào xảy ra.
  */
-export const APP_VERSION = "1.1.0";
+export const APP_VERSION = "1.5.0";

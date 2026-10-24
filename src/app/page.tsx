@@ -54,6 +54,13 @@ import {
   uploadArtworkImageToStorage,
 } from "@/lib/firebase";
 import { APP_VERSION } from "@/config/version";
+import {
+  idbGet,
+  idbSet,
+  safeLocalStorageGet,
+  safeLocalStorageSet,
+  safeLocalStorageRemove,
+} from "@/lib/storage-cache";
 
 const STORAGE_VERSION_TAG = `artprogress_storage_v${APP_VERSION}_clean`;
 
@@ -203,13 +210,15 @@ export default function DashboardPage() {
 
       try {
         // 1. So sánh mã phiên bản (1.0.0). Nếu phát hiện phiên bản cũ -> tự động dọn sạch cache và reload
-        const cachedVersion = localStorage.getItem("artprogress_app_version");
+        const cachedVersion = safeLocalStorageGet("artprogress_app_version");
         if (cachedVersion && cachedVersion !== APP_VERSION) {
           // Xóa toàn bộ cache cũ để không bị xung đột với phiên bản mới
-          localStorage.clear();
-          sessionStorage.clear();
-          localStorage.setItem("artprogress_app_version", APP_VERSION);
-          localStorage.setItem("artprogress_storage_version", STORAGE_VERSION_TAG);
+          try {
+            localStorage.clear();
+            sessionStorage.clear();
+          } catch {}
+          safeLocalStorageSet("artprogress_app_version", APP_VERSION);
+          safeLocalStorageSet("artprogress_storage_version", STORAGE_VERSION_TAG);
 
           // Xóa CacheStorage API nếu trình duyệt hỗ trợ
           if (typeof window !== "undefined" && "caches" in window) {
@@ -226,33 +235,44 @@ export default function DashboardPage() {
           }
         } else {
           // Lưu phiên bản 1.0.0 nếu chưa có
-          localStorage.setItem("artprogress_app_version", APP_VERSION);
+          safeLocalStorageSet("artprogress_app_version", APP_VERSION);
         }
 
-        if (localStorage.getItem("artprogress_storage_version") !== STORAGE_VERSION_TAG) {
-          localStorage.removeItem("artprogress_students");
-          localStorage.removeItem("artprogress_topics");
-          localStorage.removeItem("artprogress_artworks");
-          localStorage.setItem("artprogress_storage_version", STORAGE_VERSION_TAG);
+        // Luôn chủ động xóa artprogress_artworks khỏi localStorage để giải phóng ngay quota 5MB
+        safeLocalStorageRemove("artprogress_artworks");
+
+        if (safeLocalStorageGet("artprogress_storage_version") !== STORAGE_VERSION_TAG) {
+          safeLocalStorageRemove("artprogress_students");
+          safeLocalStorageRemove("artprogress_topics");
+          safeLocalStorageSet("artprogress_storage_version", STORAGE_VERSION_TAG);
         } else {
-          const cachedStudents = localStorage.getItem("artprogress_students");
+          const cachedStudents = safeLocalStorageGet("artprogress_students");
           if (cachedStudents) {
-            const parsed = JSON.parse(cachedStudents);
-            if (Array.isArray(parsed) && parsed.length > 0) setStudents(parsed);
+            try {
+              const parsed = JSON.parse(cachedStudents);
+              if (Array.isArray(parsed) && parsed.length > 0) setStudents(parsed);
+            } catch {}
           }
-          const cachedTopics = localStorage.getItem("artprogress_topics");
+          const cachedTopics = safeLocalStorageGet("artprogress_topics");
           if (cachedTopics) {
-            const parsed = JSON.parse(cachedTopics);
-            if (Array.isArray(parsed) && parsed.length > 0) setTopics(parsed);
-          }
-          const cachedArtworks = localStorage.getItem("artprogress_artworks");
-          if (cachedArtworks) {
-            const parsed = JSON.parse(cachedArtworks);
-            if (Array.isArray(parsed) && parsed.length > 0) setArtworks(parsed);
+            try {
+              const parsed = JSON.parse(cachedTopics);
+              if (Array.isArray(parsed) && parsed.length > 0) setTopics(parsed);
+            } catch {}
           }
         }
+
+        // Khôi phục artworks từ IndexedDB (dung lượng không giới hạn 5MB, an toàn tuyệt đối)
+        try {
+          const cachedArtworks = await idbGet<Artwork[]>("artprogress_artworks");
+          if (cachedArtworks && Array.isArray(cachedArtworks) && cachedArtworks.length > 0) {
+            setArtworks(cachedArtworks);
+          }
+        } catch (e) {
+          console.warn("[IndexedDB] Lỗi đọc cache artworks:", e);
+        }
       } catch (e) {
-        console.warn("Lỗi kiểm tra phiên bản và đọc cache localStorage:", e);
+        console.warn("Lỗi kiểm tra phiên bản và đọc cache:", e);
       }
 
       try {
@@ -296,15 +316,15 @@ export default function DashboardPage() {
           if (isCancelled) return;
           if (cloudArtworks && cloudArtworks.length > 0) {
             setArtworks(cloudArtworks);
+            idbSet("artprogress_artworks", cloudArtworks).catch(() => {});
           }
           if (cloudTopics && cloudTopics.length > 0) {
             setTopics(cloudTopics);
+            safeLocalStorageSet("artprogress_topics", JSON.stringify(cloudTopics));
           }
           if (cloudStudents && cloudStudents.length > 0) {
             setStudents(cloudStudents);
-            if (typeof window !== "undefined") {
-              localStorage.setItem("artprogress_students", JSON.stringify(cloudStudents));
-            }
+            safeLocalStorageSet("artprogress_students", JSON.stringify(cloudStudents));
           }
         } catch (e) {
           console.warn("Chạy ở chế độ Graceful Fallback:", e);
@@ -319,22 +339,24 @@ export default function DashboardPage() {
     };
   }, []);
 
-  // Tự động đồng bộ danh sách học sinh, chủ đề và bài vẽ vào localStorage khi có thay đổi (sau khi đã hydrate)
+  // Tự động đồng bộ danh sách học sinh, chủ đề vào localStorage và bài vẽ vào IndexedDB khi có thay đổi (sau khi đã hydrate)
   useEffect(() => {
-    if (hasHydrated && typeof window !== "undefined") {
-      localStorage.setItem("artprogress_students", JSON.stringify(students));
+    if (hasHydrated) {
+      safeLocalStorageSet("artprogress_students", JSON.stringify(students));
     }
   }, [students, hasHydrated]);
 
   useEffect(() => {
-    if (hasHydrated && typeof window !== "undefined") {
-      localStorage.setItem("artprogress_topics", JSON.stringify(topics));
+    if (hasHydrated) {
+      safeLocalStorageSet("artprogress_topics", JSON.stringify(topics));
     }
   }, [topics, hasHydrated]);
 
   useEffect(() => {
-    if (hasHydrated && typeof window !== "undefined") {
-      localStorage.setItem("artprogress_artworks", JSON.stringify(artworks));
+    if (hasHydrated) {
+      idbSet("artprogress_artworks", artworks).catch((err) => {
+        console.warn("[Storage] Không thể ghi artworks vào IndexedDB:", err);
+      });
     }
   }, [artworks, hasHydrated]);
 
@@ -579,9 +601,7 @@ export default function DashboardPage() {
     const confirmed = window.confirm("Khôi phục toàn bộ danh sách học sinh về mặc định ban đầu?");
     if (!confirmed) return;
     setStudents(INITIAL_STUDENTS);
-    if (typeof window !== "undefined") {
-      localStorage.setItem("artprogress_students", JSON.stringify(INITIAL_STUDENTS));
-    }
+    safeLocalStorageSet("artprogress_students", JSON.stringify(INITIAL_STUDENTS));
   };
 
   // XÓA CHỦ ĐỀ BÀI HỌC (GIÁO VIÊN)
