@@ -302,7 +302,7 @@ export function LoginPage({
                       onClick={handleQuickFillPin}
                       className="text-[10.5px] text-[#C85A32] hover:underline cursor-pointer font-medium"
                     >
-                      Gợi ý: 123456
+                      Mã thử nghiệm: 123456
                     </button>
                   </div>
 

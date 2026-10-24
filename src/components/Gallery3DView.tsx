@@ -303,11 +303,11 @@ export function Gallery3DView({
         (navigator.maxTouchPoints > 0) ||
         window.matchMedia("(pointer: coarse)").matches
       );
-      // Chỉ kích hoạt phím điều khiển ảo nếu là màn hình di động/tablet có cảm ứng
-      const isMobileTouch = hasTouch && window.innerWidth < 1024;
+      // Chỉ kích hoạt phím điều khiển ảo nếu là màn hình di động/tablet có cảm ứng (kể cả khi xoay ngang)
+      const isMobileTouch = hasTouch && (window.innerWidth < 1024 || window.innerHeight < 600);
       setIsTouchDevice(isMobileTouch);
 
-      const isMobileSize = window.innerWidth < 1024;
+      const isMobileSize = window.innerWidth < 1024 || window.innerHeight < 600;
       const isPortrait = window.innerHeight > window.innerWidth;
       if (hasTouch && isMobileSize && isPortrait) {
         setShowRotatePrompt(true);
@@ -389,24 +389,40 @@ export function Gallery3DView({
     return () => clearTimeout(timer);
   }, []);
 
-  // Khóa tuyệt đối việc cuộn trang và kéo giật (overscroll/bounce) trên điện thoại khi xem phòng tranh 3D
+  // Khóa cuộn trang trên điện thoại khi xem phòng tranh 3D (không can thiệp vào viewport scale hay zoom)
   useEffect(() => {
     const originalOverflow = document.body.style.overflow;
     const originalOverscroll = document.body.style.overscrollBehavior;
-    const originalTouchAction = document.body.style.touchAction;
 
     document.body.style.overflow = "hidden";
     document.body.style.overscrollBehavior = "none";
-    document.body.style.touchAction = "none";
-    document.documentElement.style.overflow = "hidden";
-    document.documentElement.style.overscrollBehavior = "none";
+
+    const handleOrientationOrResize = () => {
+      if (typeof window !== "undefined") {
+        window.scrollTo(0, 0);
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          if (containerRef.current && stateRef.current.camera && stateRef.current.renderer) {
+            const nw = containerRef.current.clientWidth || window.innerWidth;
+            const nh = containerRef.current.clientHeight || window.innerHeight;
+            if (nw > 0 && nh > 0) {
+              stateRef.current.camera.aspect = nw / nh;
+              stateRef.current.camera.updateProjectionMatrix();
+              stateRef.current.renderer.setSize(nw, nh);
+            }
+          }
+        }, 120);
+      }
+    };
+
+    window.addEventListener("orientationchange", handleOrientationOrResize);
+    window.addEventListener("resize", handleOrientationOrResize);
 
     return () => {
       document.body.style.overflow = originalOverflow;
       document.body.style.overscrollBehavior = originalOverscroll;
-      document.body.style.touchAction = originalTouchAction;
-      document.documentElement.style.overflow = "";
-      document.documentElement.style.overscrollBehavior = "";
+      window.removeEventListener("orientationchange", handleOrientationOrResize);
+      window.removeEventListener("resize", handleOrientationOrResize);
     };
   }, []);
 

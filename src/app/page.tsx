@@ -935,6 +935,7 @@ export default function DashboardPage() {
   // Số lượng bài đã nộp của lớp hiện tại
   const currentClassArtworks = artworks.filter((a) => a.classId === selectedClass.id);
   const classesInSelectedGrade = classes.filter((c) => c.grade === selectedGrade);
+  const is3DGallery = activeNav === "gallery" && galleryViewMode === "3d";
 
   // CHƯA ĐĂNG NHẬP HOẶC ĐANG HYDRATE: HIỂN THỊ TRANG ĐĂNG NHẬP ĐỒNG BỘ 100% VỚI SSR
   return (
@@ -953,11 +954,11 @@ export default function DashboardPage() {
           1. TRỤC ĐIỀU HƯỚNG CỐ ĐỊNH BÊN TRÁI (w-60)
           Tích hợp Bộ quản lý 4 Khối & 16 Lớp học THCS
       ========================================================================= */}
-          {/* LỚP PHỦ MỜ NỀN CHO MOBILE KHI MỞ SIDEBAR */}
+          {/* LỚP PHỦ MỜ NỀN KHI MỞ SIDEBAR */}
           {isMobileSidebarOpen && (
             <div
               onClick={() => setIsMobileSidebarOpen(false)}
-              className="fixed inset-0 bg-stone-900/50 backdrop-blur-xs z-40 md:hidden animate-in fade-in duration-200"
+              className="fixed inset-0 bg-stone-900/50 backdrop-blur-xs z-40 animate-in fade-in duration-200"
               aria-hidden="true"
             />
           )}
@@ -965,17 +966,20 @@ export default function DashboardPage() {
           {/* =========================================================================
           1. TRỤC ĐIỀU HƯỚNG BÊN TRÁI (w-60)
           Tích hợp Bộ quản lý 4 Khối & 16 Lớp học THCS
-          - Desktop (md+): Cố định bên trái
-          - Mobile (<md): Slide-over drawer trượt ra vào mượt mà
+          - Trong phòng tranh 3D hoặc trên điện thoại (kể cả xoay ngang): Ẩn hoàn toàn, chỉ mở khi bấm Menu
+          - Desktop (lg+): Cố định bên trái khi ở các màn hình thông thường
       ========================================================================= */}
           <aside
             className={`w-64 md:w-60 shrink-0 bg-white border-r border-[#EAE5DC] flex flex-col justify-between h-full z-50 print:hidden transition-transform duration-300 ease-in-out
-              fixed inset-y-0 left-0 md:static md:translate-x-0
-              ${isMobileSidebarOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full md:translate-x-0"}
+              fixed inset-y-0 left-0
+              ${is3DGallery
+                ? (isMobileSidebarOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full")
+                : (isMobileSidebarOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full lg:static lg:translate-x-0")
+              }
             `}
           >
             <div className="p-3.5 flex flex-col h-full overflow-y-auto pb-10 md:pb-3.5">
-              {/* Logo ứng dụng & Nút đóng trên Mobile */}
+              {/* Logo ứng dụng & Nút đóng */}
               <div className="flex items-center justify-between pb-3 border-b border-[#F0EBE1]">
                 <div className="flex items-center gap-2 min-w-0">
                   <div className="w-8 h-8 rounded-lg bg-[#F6EDE8] border border-[#E8D7CF] flex items-center justify-center text-[#C86446] shrink-0">
@@ -996,11 +1000,11 @@ export default function DashboardPage() {
                   </div>
                 </div>
 
-                {/* Nút đóng Sidebar trên Mobile */}
+                {/* Nút đóng Sidebar */}
                 <button
                   type="button"
                   onClick={() => setIsMobileSidebarOpen(false)}
-                  className="md:hidden w-8 h-8 rounded-lg flex items-center justify-center text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors cursor-pointer shrink-0 ml-1"
+                  className={`${is3DGallery ? "flex" : "lg:hidden flex"} w-8 h-8 rounded-lg items-center justify-center text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors cursor-pointer shrink-0 ml-1`}
                   title="Đóng thanh điều hướng"
                 >
                   <X className="w-4 h-4" />
@@ -1716,7 +1720,7 @@ export default function DashboardPage() {
             {/* VIEW 3: PHÒNG TRIỂN LÃM CÔNG KHAI (HỖ TRỢ CHẾ ĐỘ 3D VÀ LƯỚI 2D) */}
             {activeNav === "gallery" && (
               galleryViewMode === "3d" ? (
-                <div className="fixed inset-0 z-30 md:static md:z-auto flex-1 w-full h-[100dvh] md:h-full relative overflow-hidden flex flex-col min-h-0 bg-[#1A1614] touch-none overscroll-none">
+                <div className="fixed inset-0 z-30 w-full h-[100dvh] relative overflow-hidden flex flex-col min-h-0 bg-[#1A1614] touch-none overscroll-none">
                   <Gallery3DView
                     artworks={publicArtworks}
                     onSelectArtwork={handleSelectGalleryArtwork}

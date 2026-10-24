@@ -1,7 +1,15 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Lora, Be_Vietnam_Pro } from "next/font/google";
 import { APP_VERSION } from "@/config/version";
 import "./globals.css";
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: "cover",
+};
 
 // Font Serif nghệ thuật cho tiêu đề (tránh rơi về Times New Roman)
 const lora = Lora({
