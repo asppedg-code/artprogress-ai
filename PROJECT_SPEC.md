@@ -3,8 +3,8 @@
 
 * **Tên dự án**: ArtProgress AI (Mĩ thuật tiến bộ số)
 * **Mục tiêu**: Nền tảng Đánh giá Tiến bộ Sư phạm & Hồ sơ Sáng tạo Mĩ thuật THCS theo Chương trình GDPT 2018 (Phục vụ Ngày hội Giáo viên Sáng tạo 2026).
-* **Nền tảng**: Web Application (Next.js 16 Static Export trên Firebase Hosting).
-* **Trạng thái**: Hoàn thiện toàn bộ các module cốt lõi, 12/12 test tự động PASS.
+* **Nền tảng**: Web Application (Next.js 16.4.3 Static Export trên Firebase Hosting).
+* **Trạng thái**: Hoàn thiện toàn bộ các module cốt lõi, 15/15 test tự động PASS.
 
 ---
 
@@ -13,38 +13,45 @@
 ```
 d:\webgd\
 ├── .agents\                             # Cấu hình kỹ năng chuyên môn cục bộ (Skill taste, domain-modeling...)
-├── public\                             # Tài nguyên tĩnh (ảnh mẫu, favicon, logo, background)
+├── public\                             # Tài nguyên tĩnh (ảnh mẫu, favicon, logo, background desktop/mobile)
 ├── src\
 │   ├── app\
 │   │   ├── actions\
 │   │   │   └── artwork.ts              # Server/Client Action xử lý nộp bài và gọi phân tích AI
 │   │   ├── favicon.ico
 │   │   ├── globals.css                 # CSS toàn cục + Tailwind CSS v4 / Turbopack
-│   │   ├── layout.tsx                  # Root Layout thiết lập font chữ và metadata
+│   │   ├── layout.tsx                  # Root Layout thiết lập font chữ, metadata và viewport chống kẹt zoom
 │   │   └── page.tsx                    # Controller & Giao diện chính đa bảng (Workspace, Sidebar, Drawer)
 │   ├── components\
+│   │   ├── ArtistPaintingAnimation.tsx # Hoạt ảnh Người họa sĩ đang vẽ tranh cho màn hình đăng nhập
 │   │   ├── BeforeAfterViewer.tsx       # Trình đối sánh Trước - Sau (Interactive Slider & Side-by-Side)
 │   │   ├── FeedbackCard.tsx            # Thẻ hiển thị nhận xét Rubric, lời phê GV và cảnh báo ảnh không hợp lệ
-│   │   ├── LoginPage.tsx               # Cổng đăng nhập phân quyền 3 vai trò (Giáo viên / Học sinh / Khách)
+│   │   ├── Gallery3DView.tsx           # Không gian Triển lãm 3D Three.js (Hệ thống đèn trần động, nhãn lớp sạch)
+│   │   ├── LoginPage.tsx               # Cổng đăng nhập phân quyền 3 vai trò (Thích ứng Desktop/Mobile)
 │   │   ├── ProgressReportModal.tsx     # Báo cáo tiến bộ sư phạm chuẩn in ấn A4 (@media print)
 │   │   └── UploadArtworkModal.tsx      # Modal nộp bài vẽ kèm bộ nén ảnh Canvas tự động
+│   ├── config\
+│   │   └── version.ts                  # Khai báo phiên bản hệ thống tập trung Single Source of Truth (v1.5.0)
 │   ├── lib\
 │   │   ├── __tests__\
-│   │   │   └── artprogress.node-test.mjs # Bộ kiểm thử tự động 12 tiêu chí sư phạm (Node test runner)
+│   │   │   └── artprogress.node-test.mjs # Bộ kiểm thử tự động 15 tiêu chí sư phạm & kỹ thuật (Node test runner)
 │   │   ├── firebase.ts                 # Cấu hình Firebase SDK, Firestore CRUD, Storage và Graceful Fallback
 │   │   ├── gemini.ts                   # Tích hợp Gemini 3.5 Flash-Lite Vision, Prompt thẩm định 2 bước
 │   │   ├── image-utils.ts              # Nén ảnh Canvas Native client (1600px, 85% JPEG)
-│   │   └── mock-data.ts                # Dữ liệu hạt giống (16 lớp THCS, 130+ học sinh, chủ đề, bài vẽ mẫu)
+│   │   ├── mock-data.ts                # Dữ liệu hạt giống (16 lớp THCS, 130+ học sinh, chủ đề, bài vẽ mẫu)
+│   │   └── storage-cache.ts            # Bộ lưu trữ đệm kép IndexedDB + safeLocalStorageSet chống QuotaExceededError
 │   └── types\
 │       └── artprogress.ts              # Định nghĩa toàn bộ TypeScript Interfaces và Data Types
 ├── .env.example                        # File mẫu biến môi trường (Gemini, Firebase, Teacher PIN)
 ├── .env.local                          # Biến môi trường thực tế đang chạy (Private)
 ├── AGENTS.md                           # Quy tắc cho Agent và Next.js
 ├── GLOSSARY.md                         # Bảng thuật ngữ chuyên môn GDPT 2018
+├── HUONG_DAN_SU_DUNG.md                # Cẩm nang hướng dẫn sử dụng chi tiết theo từng vai trò
 ├── PROJECT_SPEC.md                     # [FILE NÀY] Đặc tả toàn diện cấu trúc & luồng hệ thống
+├── QUY_TRINH_THUC_HIEN_DU_AN.md        # Báo cáo quy trình nghiên cứu, phát triển và kiểm thử dự án
 ├── firebase.json                       # Cấu hình triển khai Firebase Hosting (SPA rewrite)
-├── next.config.ts                      # Cấu hình Next.js (output: "export", Turbopack, env mapping)
-├── package.json                        # Khai báo dependency và script thực thi
+├── next.config.ts                      # Cấu hình Next.js (output: "export", Turbopack, env mapping, agentUpgrade)
+├── package.json                        # Khai báo dependency và script thực thi (Next.js 16.4.3)
 └── tsconfig.json                       # Cấu hình TypeScript Strict Mode
 ```
 
@@ -146,15 +153,14 @@ export interface Artwork {
 
 ### 3.1. Luồng Xác thực & Phân quyền (Authentication Flow)
 1. **Khởi động**: `page.tsx` kiểm tra `sessionStorage`:
-   * Nếu chưa đăng nhập $\rightarrow$ Hiển thị [`LoginPage.tsx`](file:///d:/webgd/src/components/LoginPage.tsx) thiết kế theo **Phiên bản nền gốc tùy biến (bg-cover/bg-center nguyên bản căn chính giữa chuẩn xác)**:
-     - **Hình nền toàn màn hình (`public/login-bg.png`)**: Sử dụng trực tiếp ảnh nền do người dùng cung cấp trải rộng (`bg-cover bg-center bg-no-repeat`).
-     - **Bố cục phân đôi cân đối (50% - 50%)**: 
-       * *Cánh trái*: Animation Người họa sĩ đang vẽ tranh ([`ArtistPaintingAnimation.tsx`](file:///d:/webgd/src/components/ArtistPaintingAnimation.tsx)) căn chính giữa chuẩn xác cả theo trục ngang lẫn trục dọc (đã xóa 2 dãy núi dính chùm trên toan tranh, giữ mặt trời và nét màu nước loang).
-       * *Cánh phải*: Ô đăng nhập kính mờ (`max-w-[400px]`) căn chính giữa mảng nền vàng kem bên phải.
+   * Nếu chưa đăng nhập $\rightarrow$ Hiển thị [`LoginPage.tsx`](file:///d:/webgd/src/components/LoginPage.tsx) thiết kế theo **Phiên bản nền gốc tùy biến thích ứng đa nền tảng**:
+     - **Hình nền thích ứng (Responsive Atelier Canvas)**:
+       * *Trên Desktop (màn hình rộng)*: Sử dụng ảnh studio trải rộng `public/login-bg.png` tông kem `#FAF6EE`, chia 2 cột cân đối (50% - 50%). Cánh trái hiển thị Animation Người họa sĩ đang vẽ tranh ([`ArtistPaintingAnimation.tsx`](file:///d:/webgd/src/components/ArtistPaintingAnimation.tsx)); cánh phải là ô đăng nhập kính mờ (`max-w-[400px]`).
+       * *Trên Mobile (điện thoại)*: Tự động chuyển sang ảnh nền viền dọc 1080x2400 `public/login-bg-mobile.png` tông màu ấm `#fdf9ee`, bao trọn toàn màn hình và căn chính giữa ô đăng nhập, tối ưu chiều cao chống cuộn thừa thãi.
      - **3 Vai trò chuẩn biểu tượng (Representative Icons)**: Giáo viên (`GraduationCap`), Học sinh (`Palette`), Khách xem (`Frame`), tinh gọn hàng đơn, đã lược bỏ các nhãn chữ phụ ("Thẩm định", "Giá vẽ", "Triển lãm") và chấm màu tròn.
      - **Giao diện đăng nhập tinh giản (Distilled UI)**: Loại bỏ các đoạn văn bản giải thích dài dòng, số thứ tự cồng kềnh và hộp chỉ dẫn dư thừa. Thẻ đăng nhập đạt độ cao lý tưởng (~380px), không che khuất bố cục và hoàn toàn không bị tràn dọc.
      - **Tối ưu Cổng Học sinh chống tràn giao diện**: Gộp chọn Khối (K6–K9) và Lớp (A1–A4) trên cùng 1 hàng, danh sách học sinh cuộn gọn gàng (`max-h-24`), không kéo dãn chiều cao thẻ khi chuyển tab.
-   * **Cổng Giáo viên**: Nhập mã PIN (mặc định: `123456`), có gợi ý nhanh `123456`, nút ẩn/hiện PIN $\rightarrow$ Cấp quyền quản trị toàn trường (`role = "teacher"`).
+   * **Cổng Giáo viên**: Nhập mã PIN sư phạm (được bảo mật và quản lý qua biến môi trường `NEXT_PUBLIC_TEACHER_PIN`, đã loại bỏ hoàn toàn fallback lộ mã mặc định `123456` và các nút gợi ý nhanh) $\rightarrow$ Cấp quyền quản trị toàn trường (`role = "teacher"`).
    * **Cổng Học sinh**: Chọn Khối (K6–K9) $\rightarrow$ Chọn Lớp (A1–A4) $\rightarrow$ Tìm kiếm và chọn danh tính học sinh trực quan qua thẻ hồ sơ $\rightarrow$ Cấp quyền học sinh (`role = "student"`), khóa cố định vào lớp của học sinh.
    * **Cổng Khách**: Tinh giản một thẻ giới thiệu duy nhất $\rightarrow$ 1-click vào tham quan (`role = "guest"`), chuyển thẳng vào Phòng Triển Lãm.
 2. **Thanh điều hướng Sidebar tự thích ứng**:
@@ -207,7 +213,8 @@ sequenceDiagram
 * **Hệ thống ánh sáng & Khung tranh mỹ thuật**:
   - **Khung tranh tự động fit chuẩn theo tỷ lệ ảnh (Dynamic Frame Aspect Fit)**: Khung gỗ sồi đen, viền mạ vàng và giấy bo trắng (Passe-partout) tự động co giãn kích thước theo đúng tỷ lệ tự nhiên (`naturalWidth / naturalHeight`) của từng bức ảnh, đảm bảo viền bo đều 4 cạnh và tranh không bao giờ bị méo mó hay co dãn sai lệch.
   - **Model đèn rọi trần hình tròn (3D Circular Track Spotlight Fixtures)**: Trên ray trần được lắp đặt các cụm đèn 3D hoàn chỉnh gồm đế xoay, khớp cổ kim loại, thân củ đèn hình trụ tròn vát mạ vàng viền bezel và mặt kính tròn phát sáng màu vàng ấm. Hướng củ đèn được tính toán bằng Quaternion hướng trục `+Z` chính xác 100% vào tâm mặt tranh trên tường.
-  - **Đèn LED âm trần tròn trung tâm (Single Central Recessed Downlight)**: Bố trí duy nhất 1 đèn LED âm trần tròn nhỏ chuẩn kích thước thực tế ở vị trí trung tâm trần nhà ($\varnothing 20\text{cm}$, vành viền trắng sứ mỏng phẳng áp sát trần, mặt kính mica trắng mờ phát sáng phẳng $\varnothing 15.6\text{cm}$, đã loại bỏ hoàn toàn các vạch đen tai cài) tích hợp quầng sáng mềm (glow halo) và chùm sáng `SpotLight` chĩa thẳng từ mặt đèn xuống sàn nhà, tăng cường độ sáng trung tâm tự nhiên mà không gây chói trần.
+  - **Hệ thống đèn LED âm trần phân bổ động (Dynamic Ceiling Downlights)**: Căn cứ vào số lượng tranh công khai và chiều dài kéo giãn của phòng triển lãm, thuật toán tự động tính toán và sinh đều đặn các đèn LED âm trần tròn dọc theo trục trần nhà ($\varnothing 20\text{cm}$, viền trắng mỏng phẳng áp trần, mặt kính mica mờ phát sáng phẳng $\varnothing 15.6\text{cm}$) theo chu kỳ cự ly ~14m/đèn. Mỗi đèn tích hợp quầng sáng mềm (glow halo) và chùm sáng `SpotLight` rọi thẳng xuống sàn, đảm bảo phòng triển lãm luôn chan hòa ánh sáng ấm áp dù quy mô 4 hay 50 bức tranh.
+  - **Chuẩn hóa nhãn tác phẩm & Biển tên đồng nghệ thuật**: Tự động lọc sạch các tiền tố kỹ thuật thừa thãi (`CLASS_` / `class_`), hiển thị danh tính lớp ngắn gọn, trang nhã chuẩn mực sư phạm (ví dụ: `7A1`).
   - **Phào chỉ kiến trúc & Nẹp viền đen góc tường (Architectural Black Moldings)**: Hoàn thiện nẹp viền đen sắc nét tại 4 góc tường đứng, 4 viền giao trần - tường (crown molding) và phào chân tường (baseboard) chạy suốt 4 vách, tạo cấu trúc không gian bảo tàng trang nhã, tương phản nổi bật với sắc tường kem sáng.
   - **Độ sáng tổng thể phòng tranh**: Nâng cường độ `AmbientLight` lên 1.35 kết hợp ánh sáng hắt tường tinh tế, giúp toàn bộ phòng triển lãm bừng sáng, rực rỡ và ấm áp.
   - **Góc ngẩng camera mở rộng (Expanded Pitch Range)**: Nâng biên độ góc quay dọc lên $\pm 66^\circ$ ($\pm 1.15\text{ rad}$) cho cả chuột PC và cảm ứng di động, cho phép người xem ngước nhìn toàn diện các cụm đèn trần và chiêm ngưỡng kiến trúc trần bảo tàng dễ dàng.
@@ -216,7 +223,7 @@ sequenceDiagram
   - **Quán tính di chuyển & Làm mượt góc nhìn (Cinematic Damping)**: Bổ sung bộ lọc quán tính mượt mà cho vận tốc bước đi (`14.0 * delta`) và góc xoay tầm nhìn (`24.0 * delta`). Loại bỏ hoàn toàn cảm giác khựng cục bộ khi bấm phím hay rung lắc do polling rate của chuột.
   - **Kiến trúc ánh sáng hiệu năng cao (HemisphereLight + Tight Spotlights)**: 
     * Sử dụng `HemisphereLight(0xFFFBF0, 0xA88B68, 1.15)` tính toán per-vertex (tiết kiệm GPU gấp hàng trăm lần PBR point lights), kết hợp cùng `AmbientLight(0xFFF8EE, 0.55)` cho ánh sáng gallery ấm cúng, bừng sáng và rực rỡ.
-    * Đèn LED âm trần trung tâm rút gọn chính xác về DUY NHẤT 1 đèn tròn tại `(X=0, Z=0)` với 1 SpotLight rọi sàn trung tâm.
+    * Đèn LED âm trần phân bổ tự động theo cự ly ~14m dọc trục phòng, mỗi đèn có SpotLight rọi sàn trung tâm dịu nhẹ.
     * Thu hẹp cự ly chiếu sáng tranh từ 9.5m xuống 5.0m, loại bỏ tình trạng ánh sáng tranh lan tràn qua vách đối diện gây quá tải forward shader.
   - **Dùng chung Geometries & Chuyển đổi Vật liệu (MeshLambertMaterial Optimization)**:
     * Chuyển đổi trần nhà, nẹp góc, ray đèn, phào chân tường và chi tiết kim loại đèn ray từ `MeshStandardMaterial` sang `MeshLambertMaterial` / `MeshBasicMaterial`.
@@ -224,7 +231,11 @@ sequenceDiagram
   - **Tối ưu GPU Fillrate**: Giới hạn `pixelRatio` tối đa ở `1.25` và kích hoạt `precision: "mediump"`, giúp các GPU tích hợp (Intel UHD/Iris Xe) và điện thoại di động chạy mượt mà 60 FPS mà không bị nghẽn băng thông màn hình 2K/4K.
   - **Không bị reset vị trí khi xem chi tiết ảnh**: Sử dụng `onSelectArtworkRef`, `artworksKey` và `useMemo` dữ liệu triển lãm ngăn Three.js re-mount; cơ chế sao lưu vị trí & góc nhìn camera đảm bảo người xem luôn đứng đúng vị trí hiện tại sau khi đóng modal Before–After.
   - **PC**: Phím `W, A, S, D` / mũi tên để bước đi, rê chuột để xoay tầm nhìn 360 độ (tách biệt thao tác kéo chuột và nhấp chuột).
-  - **Mobile**: Hỗ trợ cảm ứng vuốt đổi hướng nhìn và cụm nút điều hướng ảo (Mobile D-pad).
+  - **Mobile**:
+    * Giao diện phòng tranh tự động ẩn thanh Sidebar để giải phóng 100% diện tích nhìn (có nút Menu góc trên trái mở nhanh Drawer khi cần).
+    * Hỗ trợ cảm ứng đa điểm (Multi-touch): Một ngón giữ nút điều hướng ảo, ngón tay khác vuốt màn hình để xoay camera cùng lúc.
+    * Thanh chọn nhanh tranh thu hẹp cân đối ở đáy màn hình, không bị tràn hay dính đè cụm phím ảo.
+    * Tự động điều chỉnh tỉ lệ theo hướng xoay ngang/dọc, chống triệt để tình trạng kẹt zoom in khi xoay ngang thiết bị.
   - **Click-to-Focus**: Nhấp chuột vào bất kỳ bức tranh nào từ xa $\rightarrow$ Camera tự động lướt mượt mà đến đứng đối diện chính diện tác phẩm.
   - **Xem chi tiết**: Bấm phím `E`, `Space` hoặc nhấp vào tranh khi đứng gần $\rightarrow$ Kích hoạt modal đối sánh Before–After, bảng Rubric và nhận xét giáo viên sẵn có.
   - **Chuyển đổi linh hoạt**: Nút gạt chuyển đổi tức thì giữa *"Phòng 3D"* và *"Dạng Lưới 2D"*.
@@ -235,7 +246,7 @@ sequenceDiagram
 
 | Khu vực / Tính năng | Giáo viên (Teacher) | Học sinh (Student) | Khách tham quan (Guest) |
 | :--- | :---: | :---: | :---: |
-| **Xác thực cổng vào** | Mã PIN sư phạm (`123456`) | Chọn Lớp & Tên | Không cần mật khẩu |
+| **Xác thực cổng vào** | Mã PIN sư phạm (`NEXT_PUBLIC_TEACHER_PIN`) | Chọn Lớp & Tên | Không cần mật khẩu |
 | **Bảng chuyển 4 Khối & 16 Lớp** | Toàn quyền chuyển lớp | Bị ẩn hoàn toàn | Bị ẩn hoàn toàn |
 | **Quản lý danh sách HS (Thêm, Import, Xóa)** | Có | Không | Không |
 | **Không gian làm việc (Portfolio)** | Xem toàn bộ bài theo lớp | Chỉ xem bài của chính mình | Bị khóa (Nội bộ) |
@@ -268,18 +279,22 @@ NEXT_PUBLIC_FIREBASE_APP_ID=1:1234567890:web:abcdef123456
 # Firebase Storage Toggle (Mặc định dùng Base64 an toàn khi chưa mở gói Blaze)
 NEXT_PUBLIC_ENABLE_FIREBASE_STORAGE=false
 
-# Mã PIN Sư phạm Giáo viên
-NEXT_PUBLIC_TEACHER_PIN=123456
+# Mã PIN Sư phạm Giáo viên (Bảo mật, không dùng mã mặc định)
+NEXT_PUBLIC_TEACHER_PIN=your_secret_pin_here
 ```
 
-### 5.2. Chế độ Lưu trữ Cục bộ & Khởi tạo Sạch (Clean State & Local Storage Persistence)
+### 5.2. Chế độ Lưu trữ Cục bộ, IndexedDB & Khởi tạo Sạch (Clean State & Double-Tier Persistence)
 1. **Khởi tạo sạch hoàn toàn (Clean Canvas)**:
    - Toàn bộ danh sách học sinh mẫu, chủ đề bài học mẫu và tranh vẽ mẫu đã được dọn sạch (`INITIAL_STUDENTS = []`, `INITIAL_TOPICS = []`, `INITIAL_ARTWORKS = []`).
    - Duy trì nguyên vẹn 16 lớp học chuẩn của 4 Khối 6, 7, 8, 9 (`INITIAL_CLASSES` với `studentCount = 0`).
 2. **Cơ chế lưu trữ và chống xuất hiện lại dữ liệu cũ khi tải lại trang**:
-   - Sử dụng thẻ phiên bản `STORAGE_VERSION_TAG = "artprogress_storage_v4_clean"`: Tự động xóa sạch bộ nhớ tạm trình duyệt cũ lưu các học sinh hoặc chủ đề mẫu trước đây.
-   - Đồng bộ liên tục 3 bảng dữ liệu (`students`, `topics`, `artworks`) vào `localStorage` (`artprogress_students`, `artprogress_topics`, `artprogress_artworks`). Mọi thao tác thêm học sinh, tạo chủ đề, nộp tranh hay xóa bỏ đều được lưu vĩnh viễn trên máy người dùng, tải lại trang không bị biến mất hay xuất hiện lại dữ liệu mẫu.
-3. **An toàn tuyệt đối với trạng thái rỗng (Zero-Crash Null Safety)**:
+   - Sử dụng thẻ phiên bản `APP_VERSION = "1.5.0"` (tại `src/config/version.ts`) kết hợp `STORAGE_VERSION_TAG = "artprogress_storage_v4_clean"`: Tự động xóa sạch bộ nhớ tạm trình duyệt cũ lưu các học sinh hoặc chủ đề mẫu trước đây khi nâng cấp.
+   - Đồng bộ liên tục 3 bảng dữ liệu (`students`, `topics`, `artworks`). Mọi thao tác thêm học sinh, tạo chủ đề, nộp tranh hay xóa bỏ đều được lưu vĩnh viễn trên máy người dùng, tải lại trang không bị biến mất hay xuất hiện lại dữ liệu mẫu.
+3. **Kiến trúc đệm kép chống lỗi QuotaExceededError (`src/lib/storage-cache.ts`)**:
+   - Dữ liệu cấu hình nhẹ lưu trên `localStorage`.
+   - Dữ liệu tranh vẽ Base64 độ phân giải cao được tự động chuyển lưu trữ vào `IndexedDB` (hỗ trợ hàng trăm megabyte).
+   - Hàm `safeLocalStorageSet` bắt lỗi tràn hạn mức tự động, dọn dẹp cache phụ mà không làm ngắt quãng trải nghiệm hay sập giao diện người dùng.
+4. **An toàn tuyệt đối với trạng thái rỗng (Zero-Crash Null Safety)**:
    - Các bảng hiển thị (Rubric View, Portfolio Workspace, Drawer, Gallery) đều có màn hình trạng thái rỗng (Empty State) chỉ dẫn sư phạm thân thiện, các hàm tham chiếu `selectedTopic` và `currentStudent` đều sử dụng optional chaining an toàn (`?.`), không bao giờ ném lỗi `TypeError` khi chưa có dữ liệu.
 
 ---
@@ -290,7 +305,7 @@ NEXT_PUBLIC_TEACHER_PIN=123456
   ```bash
   npm run dev
   ```
-* **Chạy bộ kiểm thử tự động 12 tiêu chí**:
+* **Chạy bộ kiểm thử tự động 15 tiêu chí**:
   ```bash
   node --test src/lib/__tests__/artprogress.node-test.mjs
   ```

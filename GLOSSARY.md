@@ -15,7 +15,7 @@ Tài liệu định nghĩa chuẩn xác các thuật ngữ sư phạm, nghiệp 
 | **Phòng Triển lãm** | Public Exhibition | Không gian trưng bày trực tuyến các tác phẩm xuất sắc đã được giáo viên duyệt nhận xét và phê duyệt công khai (`isPublic = true`). |
 | **Đóng/Mở nộp bài** | Submission Toggle | Trạng thái tiếp nhận bài nộp của từng chủ đề do giáo viên chủ động kiểm soát (`isActive`), ngăn học sinh nộp bài ngoài giờ quy định. |
 | **Báo cáo tiến bộ sư phạm** | Pedagogical Progress Report | Bản tổng hợp minh chứng hành trình phát triển năng lực của học sinh (đối sánh Before-After, bảng điểm Rubric, lời phê và tự đánh giá), phục vụ hồ sơ bài giảng và Ngày hội sáng tạo 2026. |
-| **Mã PIN Sư phạm** | Teacher Auth PIN | Mã bảo mật ngắn (mặc định `123456`) bảo vệ các thao tác quản trị sư phạm (duyệt bài, chỉnh sửa điểm, đổi Rubric, đóng/mở nộp bài) tránh học sinh thao tác nhầm lẫn. |
+| **Mã PIN Sư phạm** | Teacher Auth PIN | Mã bảo mật ngắn (cấu hình an toàn qua biến môi trường `NEXT_PUBLIC_TEACHER_PIN`) bảo vệ các thao tác quản trị sư phạm (duyệt bài, chỉnh sửa điểm, đổi Rubric, đóng/mở nộp bài) tránh học sinh thao tác nhầm lẫn. |
 | **Kho lưu trữ tác phẩm** | Artwork Storage | Dịch vụ đám mây Firebase Storage lưu trữ ảnh tác phẩm đã nén, cung cấp liên kết truy cập an toàn tải nhanh cho hồ sơ học sinh. |
 | **Phòng Triển lãm 3D** | 3D Interactive Art Gallery | Không gian ảo 3D thời gian thực (Three.js WebGL) mô phỏng bảo tàng nghệ thuật với sàn gỗ, đèn rọi tranh và tường trưng bày, cho phép người dùng tự do di chuyển tham quan. |
 | **Khung tranh 3D** | 3D Artwork Frame | Thực thể 3D trong không gian bảo tàng kết hợp khung gỗ nổi, toan vẽ nạp ảnh động của học sinh và biển đồng khắc thông tin tác phẩm bên dưới. |

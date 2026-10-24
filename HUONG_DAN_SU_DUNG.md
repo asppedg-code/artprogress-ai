@@ -14,7 +14,7 @@ Phần mềm được thiết kế theo đúng tinh thần **"Đánh giá vì s�
 1. Mỗi học sinh đều có một hồ sơ mĩ thuật cá nhân (*Art Portfolio*), lưu trữ chặng đường từ nét vẽ phác thảo đầu tiên cho đến bức tranh hoàn thiện.
 2. Thầy/Cô có công cụ chấm điểm theo bảng tiêu chí (*Rubric*) 4 chuẩn năng lực rõ ràng, ghi lời phê động viên mang tính sư phạm.
 3. Các bức tranh tiêu biểu được đưa lên **Phòng Triển Lãm Ảo 3D** hiện đại với ánh sáng và khung tranh mỹ thuật, giúp học sinh thêm tự hào và say mê sáng tạo.
-4. **Cơ chế tự động dọn cache & cập nhật phiên bản**: Hệ thống luôn kiểm tra mã phiên bản cấu hình tập trung tại `src/config/version.ts`. Nếu phát hiện người dùng đang dùng phiên bản cũ do cache trình duyệt, hệ thống sẽ tự động dọn sạch bộ nhớ đệm và reload mới hoàn toàn.
+4. **Cơ chế lưu trữ an toàn & Tự động dọn cache (v1.5.0)**: Hệ thống sử dụng bộ nhớ đệm kép (kết hợp `LocalStorage` và `IndexedDB`) chống tràn dung lượng khi lưu nhiều bài vẽ, đồng thời tự động kiểm tra mã phiên bản tại `src/config/version.ts`. Nếu phát hiện người dùng đang dùng phiên bản cũ do cache trình duyệt, hệ thống sẽ tự động dọn sạch bộ nhớ đệm và reload mới hoàn toàn.
 
 Tài liệu này sẽ hướng dẫn Thầy/Cô và các bạn học sinh từng bước vận hành hệ thống một cách dễ dàng và hiệu quả nhất.
 
@@ -52,7 +52,7 @@ flowchart TD
 
 #### 1. Đăng nhập hệ thống
 1. Tại màn hình chính, chọn tab **"Giáo Viên"**.
-2. Nhập mã PIN sư phạm: Mặc định là `123456` *(hoặc bấm chữ "Gợi ý: 123456" để điền tự động)*.
+2. Nhập mã PIN sư phạm do nhà trường hoặc quản trị viên cung cấp (được cấu hình an toàn qua biến môi trường `NEXT_PUBLIC_TEACHER_PIN`).
 3. Bấm nút **"Đăng nhập"**. Vệt cọ vẽ `#C4572F` sẽ quét qua màn hình và mở ra Bảng điều khiển dành riêng cho Giáo viên.
 
 #### 2. Quản lý 4 Khối & 16 Lớp học
@@ -141,10 +141,13 @@ flowchart TD
      - Dùng các phím `W`, `A`, `S`, `D` hoặc các phím mũi tên `↑`, `←`, `↓`, `→` để bước đi tới, lui, trái, phải trong phòng tranh.
      - Nhấp đúp chuột vào bất kỳ bức tranh nào trên tường để nhân vật tự động bước đến gần và ngắm nhìn chính diện bức tranh đó.
    - **Trên điện thoại / Máy tính bảng**:
-     - Dùng cụm phím điều khiển ảo hình tròn ở góc dưới màn hình để di chuyển.
-     - Chạm và vuốt nhẹ trên màn hình để đổi hướng nhìn.
-4. **Xem chi tiết tác phẩm**:
-   - Khi đứng trước một bức tranh, một biển tên đồng nghệ thuật sẽ hiện rõ tên tác phẩm, tác giả và lớp học.
+     - Giao diện phòng tranh tự động mở rộng bao trọn toàn màn hình, thanh menu bên trái ẩn gọn gàng (bấm nút Menu góc trên trái để mở lại danh mục).
+     - Hỗ trợ cảm ứng đa điểm (Multi-touch): Một ngón tay nhấn giữ cụm phím điều khiển ảo để bước đi, ngón tay còn lại vuốt trên màn hình để xoay hướng nhìn cùng lúc.
+     - Thanh chuyển nhanh tranh được thu gọn cân đối ở cạnh dưới màn hình, không che khuất phím di chuyển.
+     - *Khuyến khích xoay ngang điện thoại*: Hệ thống tự động thích ứng tỉ lệ màn hình ngang, mở rộng góc nhìn toàn cảnh (Panorama) và chống giật/kẹt zoom trang.
+4. **Xem chi tiết tác phẩm & Không gian triển lãm**:
+   - Khi đứng trước một bức tranh, một biển tên đồng nghệ thuật sẽ hiện rõ tên tác phẩm, tác giả và lớp học (đã loại bỏ tiền tố thừa, hiển thị ngắn gọn như `7A1`).
+   - Hệ thống đèn âm trần tự động phân bổ đều theo chiều dài phòng tranh khi số lượng tác phẩm tăng lên, đảm bảo ánh sáng rực rỡ và chân thực.
    - Bấm nút **"👁️ Xem chi tiết"** để mở bảng phóng to bức tranh, xem bảng điểm Rubric và lời nhận xét của giáo viên.
 
 ---
@@ -160,14 +163,19 @@ flowchart TD
 - Mở trình duyệt web truy cập địa chỉ: `http://localhost:3000`.
 
 ### 2. Triển khai trực tuyến lên Internet (Để giáo viên và cả lớp cùng dùng)
-- Dự án được xây dựng bằng **Next.js 16** hiện đại nhất, sẵn sàng để đưa lên dịch vụ miễn phí như **Vercel** hoặc **Firebase App Hosting**:
-  1. Đưa mã nguồn lên GitHub.
-  2. Kết nối tài khoản GitHub với [Vercel.com](https://vercel.com).
-  3. Bấm **Deploy**. Sau 1 phút, trường sẽ có một đường link web riêng (ví dụ: `https://artprogress-thcs.vercel.app`) để toàn trường có thể mở trên điện thoại hay máy tính mọi lúc mọi nơi!
+- Dự án được xây dựng bằng **Next.js 16.4.3** hiện đại nhất (đã cập nhật đầy đủ các bản vá bảo mật chính thức), sẵn sàng để đưa lên dịch vụ miễn phí như **Vercel** hoặc **Firebase Hosting**:
+  1. Đưa mã nguồn lên GitHub (`git push origin main`).
+  2. Kết nối tài khoản GitHub với Vercel hoặc triển khai tĩnh qua Firebase Hosting:
+     ```bash
+     npm run build
+     firebase deploy --only hosting
+     ```
+  3. Sau 1 phút, trường sẽ có một đường link web riêng (ví dụ: `https://mithuatso.web.app`) để toàn trường có thể mở trên điện thoại hay máy tính mọi lúc mọi nơi!
 
-### 3. Cơ chế kiểm soát phiên bản & Tự động dọn Cache (Cấu hình tại `src/config/version.ts`)
-- **Tự động đối chiếu phiên bản**: Hệ thống đọc mã phiên bản khai báo duy nhất tại `src/config/version.ts` và lưu vào Local Storage (`artprogress_app_version`).
-- **Tự động reload sạch**: Khi người dùng mở trang, nếu phát hiện phiên bản trong máy cũ hơn bản phát hành mới, hệ thống tự động xóa sạch cache cũ, dọn Cache Storage và reload trang để nạp bản mới nhất, tránh tình trạng lỗi giao diện do cache trình duyệt lưu trữ mã nguồn cũ.
+### 3. Cơ chế kiểm soát phiên bản & Bộ nhớ đệm kép IndexedDB (Cấu hình tại `src/config/version.ts`)
+- **Phiên bản hiện tại**: `1.5.0` (khai báo tập trung duy nhất tại `src/config/version.ts`).
+- **Bộ nhớ đệm kép chống tràn Quota (IndexedDB + LocalStorage Safe-Wrapper)**: Tự động lưu trữ bài vẽ dung lượng lớn vào IndexedDB (`src/lib/storage-cache.ts`), giải quyết triệt để giới hạn 5MB của LocalStorage, giúp lưu trữ hàng trăm bức tranh phân giải cao mà không bao giờ gặp lỗi `QuotaExceededError`.
+- **Tự động reload sạch**: Khi người dùng mở trang, nếu phát hiện phiên bản trong máy cũ hơn bản phát hành mới, hệ thống tự động dọn sạch cache cũ, đồng bộ phiên bản mới và reload trang để nạp bản mới nhất, tránh tình trạng lỗi giao diện do cache trình duyệt lưu trữ mã nguồn cũ.
 - **Lưu trữ cục bộ an toàn**: Tự động lưu trữ bài vẽ và danh sách lớp học offline, không sợ mất dữ liệu kể cả khi trường học mất mạng.
 
 ---

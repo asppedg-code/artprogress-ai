@@ -4,7 +4,7 @@
 > **Người thực hiện**: Học sinh phụ trách dự án công nghệ mĩ thuật  
 > **Người hướng dẫn / Tiếp nhận**: Giáo viên Mĩ thuật THCS  
 > **Phạm vi áp dụng**: 4 Khối (6, 7, 8, 9) & 16 Lớp học THCS  
-> **Kiểm soát phiên bản**: Đồng bộ tự động qua [`src/config/version.ts`](file:///d:/webgd/src/config/version.ts)  
+> **Kiểm soát phiên bản**: Đồng bộ tự động qua [`src/config/version.ts`](file:///d:/webgd/src/config/version.ts) (Phiên bản hệ thống: `1.5.0`)  
 > **Năm học**: 2025 – 2026
 
 ---
@@ -80,13 +80,13 @@ sequenceDiagram
 
 | Thành phần | Công nghệ lựa chọn | Lý do lựa chọn |
 | :--- | :--- | :--- |
-| **Framework nền tảng** | **Next.js 16 (App Router) + React 19** | Nền tảng web hiện đại nhất thế giới, tải trang tức thì, hỗ trợ Server-Side Rendering (SSR) |
+| **Framework nền tảng** | **Next.js 16.4.3 (App Router) + React 19** | Nền tảng web hiện đại nhất thế giới, tải trang tức thì, hỗ trợ Server-Side Rendering (SSR) & vá lỗ hổng bảo mật toàn diện |
 | **Ngôn ngữ lập trình** | **TypeScript** | Định kiểu dữ liệu chặt chẽ, an toàn, không lo lỗi biến hay lỗi kiểu dữ liệu |
 | **Không gian ảo 3D** | **Three.js (WebGL Engine)** | Dựng môi trường 3D thời gian thực chạy trực tiếp trên trình duyệt, không cần cài đặt plugin |
 | **Thiết kế giao diện** | **Tailwind CSS + Lucide Icons** | Giao diện hiện đại, tối giản, thanh lịch theo phong cách xưởng vẽ nghệ thuật |
 | **Chuyển động nghệ thuật** | **CSS GPU Compositor Keyframes** | Xử lý hoạt ảnh vệt cọ vẽ `#C4572F` mượt mà 60/120fps trên luồng phần cứng |
-| **Lưu trữ dữ liệu** | **Local Storage + Cloud Firestore** | Chế độ lưu trữ kép (*Graceful Fallback*): Hoạt động trơn tru cả khi mất mạng |
-| **Kiểm soát phiên bản cache**| **App Version Tag (src/config/version.ts)** | Tự động so sánh phiên bản, xóa sạch cache cũ và reload sạch khi có cập nhật |
+| **Lưu trữ dữ liệu** | **IndexedDB + Local Storage + Cloud Firestore** | Chế độ lưu trữ đệm kép chống tràn Quota (`src/lib/storage-cache.ts`) & Graceful Fallback khi mất mạng |
+| **Kiểm soát phiên bản cache**| **App Version Tag v1.5.0 (src/config/version.ts)** | Tự động so sánh phiên bản, xóa sạch cache cũ và reload sạch khi có cập nhật |
 
 ---
 
@@ -94,9 +94,12 @@ sequenceDiagram
 
 ### 4.1. Cổng đăng nhập phân quyền (`LoginPage.tsx`)
 - Giao diện 3 tab chuyển đổi nhanh: **Giáo viên**, **Học sinh**, **Khách**.
-- Tab Giáo viên: Bảo mật bằng mã PIN sư phạm, hỗ trợ nút bấm điền nhanh `123456`.
+- Tab Giáo viên: Bảo mật bằng mã PIN sư phạm (đã loại bỏ cơ chế lộ mã mặc định `123456`, mã được quản lý an toàn qua biến môi trường `NEXT_PUBLIC_TEACHER_PIN`).
 - Tab Học sinh: Bộ lọc Khối $\rightarrow$ Lớp $\rightarrow$ Tìm kiếm tên học sinh thông minh.
 - Tab Khách: Mở cửa tự do một chạm, không rào cản.
+- **Thích ứng màn hình đa thiết bị (Responsive Login)**:
+  - *Trên máy tính (Desktop)*: Áp dụng tranh studio tông ấm `#FAF6EE`, phân đôi cân xứng với hoạt cảnh Người họa sĩ đang vẽ tranh sống động bên trái.
+  - *Trên điện thoại (Mobile)*: Tự động chuyển sang nền tranh viền dọc 1080x2400 tông `#fdf9ee`, căn giữa hộp đăng nhập kính mờ, tối ưu chiều cao chống tràn màn hình.
 
 ### 4.2. Hiệu ứng nhận diện thương hiệu vệt cọ vẽ (`BrushStrokeTransition.tsx`)
 - **Tông màu**: Sắc cam son đất nung `#C4572F` đặc trưng của mĩ thuật truyền thống và hiện đại.
@@ -112,19 +115,22 @@ sequenceDiagram
 
 ### 4.4. Xây dựng Phòng Triển Lãm Mỹ Thuật 3D (`Gallery3DView.tsx`)
 - **Kiến trúc phòng**: Tường thạch cao mỹ thuật `0xF7F4ED`, sàn gỗ sồi ấm áp tự sinh vân, nẹp viền đen góc tường, phào chỉ trần và chân tường.
-- **Hệ thống ánh sáng bảo tàng**:
-  - Đèn LED âm trần tròn trung tâm phát quầng sáng mịn màng.
+- **Hệ thống ánh sáng bảo tàng tự thích ứng**:
   - Cụm đèn rọi ray (`track spotlights`) tính toán góc quay toán học chính xác 100% hướng thẳng vào tâm từng bức tranh.
+  - **Tự động sinh đèn trần theo chiều dài phòng**: Khi số lượng tranh công khai tăng lên làm phòng kéo dài, thuật toán sẽ tự động spawn thêm các đèn âm trần LED rải đều trần nhà theo chu kỳ khoảng cách (~14m), đảm bảo toàn bộ không gian luôn chan hòa ánh sáng ấm áp.
   - Ánh sáng vòm `HemisphereLight` kết hợp `AmbientLight` giúp tranh bừng sáng rõ nét.
 - **Khung tranh co giãn tự động**: Khung gỗ sồi đen dày 7cm kết hợp nẹp chỉ vàng kim loại 3cm ôm sát mép toan tranh theo đúng tỉ lệ ảnh tự nhiên (loại bỏ hoàn toàn viền trắng thừa thãi).
+- **Chuẩn hóa nhãn tác phẩm & Tối ưu hóa Mobile**:
+  - Biển tên đồng nghệ thuật tự động lọc bỏ tiền tố thừa (`CLASS_` / `class_`), hiển thị danh tính lớp ngắn gọn chuẩn mực sư phạm (ví dụ: `7A1`).
+  - Khi tham quan trên điện thoại: Tự động ẩn sidebar để giải phóng 100% không gian hiển thị, bổ sung nút menu mở lại dạng drawer, hỗ trợ cảm ứng đa điểm (vừa đi vừa xoay góc nhìn), thu gọn thanh chọn tranh để không chồng lấn nút điều khiển ảo, và triệt tiêu hoàn toàn lỗi kẹt zoom khi xoay ngang thiết bị.
 
 ### 4.5. Xuất bản báo cáo minh chứng in A4 (`ProgressReportModal.tsx`)
 - Tự động ẩn thanh công cụ khi in (`print:hidden`).
 - Bố cục trang A4 chuẩn xác: Tiêu đề trường, thông tin học sinh, minh chứng ảnh Trước - Sau, bảng điểm Rubric, nhận xét của giáo viên và tự đánh giá của học sinh.
 
-### 4.6. Cơ chế kiểm soát phiên bản tự động (Single Source of Truth)
-- Định nghĩa tập trung tại duy nhất một nơi: [`src/config/version.ts`](file:///d:/webgd/src/config/version.ts).
-- Lưu mã phiên bản hiện tại vào Local Storage (`artprogress_app_version`).
+### 4.6. Cơ chế kiểm soát phiên bản tự động & Bộ nhớ đệm kép IndexedDB
+- Định nghĩa tập trung tại duy nhất một nơi: [`src/config/version.ts`](file:///d:/webgd/src/config/version.ts) (`APP_VERSION = "1.5.0"`).
+- Module [`src/lib/storage-cache.ts`](file:///d:/webgd/src/lib/storage-cache.ts) cung cấp lớp bọc an toàn: Dữ liệu nhẹ lưu LocalStorage, dữ liệu bài vẽ Base64 lớn được lưu vào IndexedDB. Khi phát hiện bộ nhớ LocalStorage chạm ngưỡng đầy, hàm `safeLocalStorageSet` sẽ tự động dọn dẹp các cache phụ và chuyển sang IndexedDB, ngăn chặn tuyệt đối lỗi sập trang `QuotaExceededError`.
 - Tự động phát hiện khi người dùng mở trang từ bản cache cũ, thực hiện dọn sạch bộ nhớ cache và reload sạch sẽ để cập nhật bundle mới nhất.
 
 ---
@@ -157,9 +163,17 @@ flowchart LR
 - **Vấn đề**: Khi bấm xem chi tiết bức tranh, vị trí nhân vật bị dịch chuyển về điểm xuất phát.
 - **Giải pháp**: Tách biệt trạng thái hiển thị Modal chi tiết khỏi vòng đời khởi tạo lại Three.js Scene, duy trì tọa độ camera ổn định.
 
-### 5.4. Tự động hóa kiểm thử (Automated Unit Testing)
+### 5.4. Khắc phục lỗi QuotaExceededError & Tối ưu hóa giao diện di động
+- **Lỗi tràn bộ nhớ lưu trữ bài vẽ**:
+  - *Vấn đề*: Khi học sinh nộp nhiều bài vẽ hoặc ảnh chụp có dung lượng lớn dạng Base64, trình duyệt ném ngoại lệ `QuotaExceededError: Setting the value of 'artprogress_artworks' exceeded the quota` làm sập trang.
+  - *Giải pháp*: Xây dựng module [`src/lib/storage-cache.ts`](file:///d:/webgd/src/lib/storage-cache.ts) tự động phân luồng: Bài vẽ lớn lưu vào `IndexedDB` (hỗ trợ hàng trăm MB), bọc hàm `safeLocalStorageSet` an toàn tuyệt đối cho LocalStorage và nâng cấp `APP_VERSION = "1.5.0"` để tự động giải phóng vùng đệm cũ.
+- **Lỗi kẹt zoom & trồi sidebar khi xoay ngang điện thoại trong phòng triển lãm 3D**:
+  - *Vấn đề*: Khi người dùng xoay ngang điện thoại trong phòng 3D, sidebar trồi lên che khuất không gian và thao tác xoay bị kẹt zoom in không phục hồi được.
+  - *Giải pháp*: Bỏ `md:static md:translate-x-0` trên aside khi ở chế độ 3D gallery; chuẩn hóa cấu hình `viewportFit: "cover"` và `userScalable: false` trong Root Layout; lắng nghe sự kiện `orientationchange` để tự động reset góc nhìn và ma trận camera Three.js.
+
+### 5.5. Tự động hóa kiểm thử (Automated Unit Testing)
 - Xây dựng file kiểm thử tự động [`src/lib/__tests__/artprogress.node-test.mjs`](file:///d:/webgd/src/lib/__tests__/artprogress.node-test.mjs).
-- Kiểm tra 12 trường hợp nghiệp vụ sư phạm cốt lõi:
+- Kiểm tra toàn diện **15 trường hợp nghiệp vụ sư phạm và kỹ thuật cốt lõi**:
   1. Tổng trọng số Rubric 4 tiêu chí bắt buộc bằng 100%.
   2. Quy trình phê duyệt Human-in-the-Loop mặc định `pending_moderation`.
   3. Quyền riêng tư của tranh mặc định `isPublic = false`.
@@ -172,7 +186,10 @@ flowchart LR
   10. Đầy đủ thành phần báo cáo minh chứng tiến bộ sư phạm A4.
   11. Bộ lọc phân loại chủ đề theo đúng khối lớp.
   12. Định dạng in ấn PDF che giấu thanh menu.
-- **Kết quả**: **12/12 kiểm thử đạt tiêu chuẩn tuyệt đối (PASS 100%)**.
+  13. Chống sập trang khi gặp QuotaExceededError: `safeLocalStorageSet` bắt lỗi an toàn và chuyển lưu `IndexedDB`.
+  14. Phòng triển lãm 3D: Định dạng mã lớp học sinh xóa sạch tiền tố `CLASS_` / `class_`.
+  15. Phòng triển lãm 3D: Tự động tính toán và spawn đèn trần đều đặn khi phòng kéo giãn theo số lượng tranh.
+- **Kết quả**: **15/15 kiểm thử đạt tiêu chuẩn tuyệt đối (PASS 100%)**.
 
 ---
 
@@ -180,7 +197,8 @@ flowchart LR
 
 ### 6.1. Kiểm định mã nguồn trước khi xuất xưởng
 - **Linter**: `npm run lint` $\rightarrow$ **0 lỗi, 0 cảnh báo** (Tuân thủ chuẩn React 19).
-- **Build Production**: `npm run build` với Next.js 16 Turbopack $\rightarrow$ **Thành công 100% trong 4.1 giây**.
+- **Vá lỗi bảo mật nền tảng**: Nâng cấp Next.js lên bản **`16.4.3`** vá triệt để lỗ hổng bảo mật công bố quốc tế, tích hợp cờ `experimental: { agentUpgrade: "security" }`.
+- **Build Production**: `npm run build` với Next.js 16.4.3 Turbopack $\rightarrow$ **Thành công 100% xuất bản các trang tĩnh siêu tốc vào thư mục `out/`**.
 
 ### 6.2. Tài liệu bàn giao hoàn chỉnh
 1. **Mã nguồn dự án**: Tổ chức khoa học, tách bạch components và thư viện tiện ích.
