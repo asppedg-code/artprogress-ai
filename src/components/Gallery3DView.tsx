@@ -1384,14 +1384,14 @@ export function Gallery3DView({
         e.preventDefault();
         try {
           (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-        } catch {}
+        } catch { }
         handleVirtualWalk(dir, true);
       },
       onPointerUp: (e: React.PointerEvent) => {
         e.preventDefault();
         try {
           (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
-        } catch {}
+        } catch { }
         handleVirtualWalk(dir, false);
       },
       onPointerCancel: (e: React.PointerEvent) => {
@@ -1476,13 +1476,6 @@ export function Gallery3DView({
             <Menu className="w-4 h-4" />
           </button>
         )}
-        <div className="bg-stone-900/85 backdrop-blur-md px-2.5 sm:px-3 py-1.5 rounded-xl border border-stone-700/60 shadow-lg flex items-center gap-2 pointer-events-auto">
-          <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
-          <span className="font-serif font-bold text-xs text-white whitespace-nowrap">Triển Lãm 3D</span>
-          <span className="hidden sm:inline-block text-[9.5px] font-mono font-semibold bg-stone-800 text-amber-300 px-1.5 py-0.2 rounded border border-stone-700">
-            v{APP_VERSION}
-          </span>
-        </div>
       </div>
 
       <div className="absolute top-4 right-4 flex items-center justify-end pointer-events-none z-20">
@@ -1614,11 +1607,10 @@ export function Gallery3DView({
               <button
                 key={art.id}
                 onClick={() => focusOnArtworkByIndex(idx)}
-                className={`px-2 sm:px-2.5 py-0.8 sm:py-1 rounded-lg text-[9.5px] sm:text-[11px] font-medium transition-all cursor-pointer shrink-0 truncate max-w-[76px] sm:max-w-[130px] ${
-                  activeArtworkIndex === idx
-                    ? "bg-amber-600 text-white font-bold shadow-xs scale-105"
-                    : "bg-stone-800/80 text-stone-300 hover:bg-stone-700 hover:text-white"
-                }`}
+                className={`px-2 sm:px-2.5 py-0.8 sm:py-1 rounded-lg text-[9.5px] sm:text-[11px] font-medium transition-all cursor-pointer shrink-0 truncate max-w-[76px] sm:max-w-[130px] ${activeArtworkIndex === idx
+                  ? "bg-amber-600 text-white font-bold shadow-xs scale-105"
+                  : "bg-stone-800/80 text-stone-300 hover:bg-stone-700 hover:text-white"
+                  }`}
                 title={`${art.title} - ${art.studentName}`}
               >
                 {idx + 1}. {art.title}

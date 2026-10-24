@@ -302,7 +302,7 @@ export function LoginPage({
                         setPin(e.target.value);
                         if (pinError) setPinError("");
                       }}
-                      placeholder="Nhập mã PIN"
+                      placeholder="Nhập mã PIN | Gợi ý: 123456"
                       className="w-full text-xs px-3 py-2 pr-14 rounded-xl border border-[#D9CEBC] focus:outline-none focus:ring-1 focus:ring-[#C85A32] font-mono tracking-widest bg-[#FAF6EE] text-[#241F1C]"
                       autoFocus
                     />

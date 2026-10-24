@@ -1,6 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  experimental: {
+    agentUpgrade: "security",
+  },
   output: "export",
   // Cho phép domain tunnel truy cập tài nguyên HMR
   allowedDevOrigins: ["*.trycloudflare.com"],
