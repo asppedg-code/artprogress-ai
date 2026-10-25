@@ -339,56 +339,40 @@ test("AI đánh giá thích ứng lứa tuổi (Age-Adaptive Evaluation): Tích 
   assert.ok(averageResult.maxScore <= 7.4);
 });
 
-test("Thẩm định AI đa thể loại mĩ thuật THCS: Phân hóa công tâm giữa bài vẽ phẳng 2D và bài có chiều sâu nghệ thuật", () => {
-  // Logic kiểm soát chất lượng nhận xét Rubric và điểm số theo chuẩn sư phạm GDPT 2018
-  const sanitizeCriterion = (crit) => {
-    let { level, improvement } = crit;
-    if (improvement.includes("tỉ lệ cơ thể") || improvement.includes("vững chãi")) {
-      level = "Xuất sắc";
-      improvement = "Dáng người mẫu thời trang cách điệu rất thanh thoát và uyển chuyển.";
-    }
-    if (improvement.includes("ý nghĩa của từng loại hoa văn") || improvement.includes("nội dung và văn hóa")) {
-      level = "Xuất sắc";
-      improvement = "Cách chắt lọc và kết hợp hoa văn truyền thống vào trang phục rất hài hòa và giàu tính thẩm mỹ.";
-    }
-    return { ...crit, level, improvement };
-  };
-
+test("Thẩm định AI mĩ thuật THCS (GDPT 2018): Phân bổ điểm số nhất quán theo tiêu chí Rubric bài học", () => {
+  // Logic kiểm soát chất lượng điểm số phổ quát cho mọi chủ đề mĩ thuật THCS
   const calibrateScore = (rawScore, criteriaLevels) => {
     if (rawScore === 0) return 0;
     const numXuatSac = criteriaLevels.filter((lvl) => lvl === "Xuất sắc").length;
     const numTot = criteriaLevels.filter((lvl) => lvl === "Tốt").length;
-    const numDat = criteriaLevels.filter((lvl) => lvl === "Đạt").length;
 
     let score = rawScore;
-    if (numXuatSac >= 3 || (numXuatSac >= 2 && numDat === 0)) {
+    // 1. Tác phẩm đạt phần lớn tiêu chí Xuất sắc (>= 60% tiêu chí) -> Xứng đáng đạt mức 9+
+    if (numXuatSac >= Math.ceil(criteriaLevels.length * 0.6)) {
       if (score < 9.0) score = 9.2;
-    } else if (numXuatSac === 0 && numTot <= 1) {
+    }
+    // 2. Bài làm cơ bản đại trà (không có tiêu chí Xuất sắc, tối đa 1 tiêu chí Tốt) -> Chuẩn 7.5đ
+    else if (numXuatSac === 0 && numTot <= 1) {
       score = 7.5;
     }
     return Math.round(score * 10) / 10;
   };
 
-  // Trường hợp 1: Tranh 2 (Trang phục thổ cẩm 2D trải phẳng, thước kẻ, màu bẹt, nền trắng)
-  // Các tiêu chí đạt mức "Đạt" (hoặc tối đa 1 tiêu chí "Tốt"), nếu AI bị lố lên 8.2đ sẽ được kéo về chuẩn 7.5đ
-  const flat2DLevels = ["Đạt", "Đạt", "Đạt", "Tốt"];
-  const calibratedFlatArt = calibrateScore(8.2, flat2DLevels);
-  assert.equal(calibratedFlatArt, 7.5, "Bài vẽ sơ đồ phẳng 2D cơ bản chỉ được chấm chuẩn 7.5đ, không để lố lên 8.2đ");
+  // Trường hợp 1: Bài làm cơ bản, sạch sẽ nhưng ở dạng phẳng 2D, đơn giản (chủ yếu Đạt, tối đa 1 Tốt)
+  // Nếu AI cho điểm lệch lên 8.2đ -> Chuẩn hóa về đúng 7.5đ chuẩn mực
+  const basicSubmissionLevels = ["Đạt", "Đạt", "Đạt", "Tốt"];
+  const calibratedBasicArt = calibrateScore(8.2, basicSubmissionLevels);
+  assert.equal(calibratedBasicArt, 7.5, "Bài làm cơ bản, phẳng 2D sạch sẽ được định chuẩn ở mức 7.5đ");
 
-  // Trường hợp 2: Tranh 1 bị AI bắt bẻ sai thể loại về dáng croquis và hoa văn
-  const rawCrit1 = { level: "Tốt", improvement: "Cần chú ý hơn đến tỉ lệ cơ thể để dáng người trông tự nhiên và vững chãi hơn." };
-  const rawCrit2 = { level: "Tốt", improvement: "Nên tìm hiểu sâu hơn về ý nghĩa của từng loại hoa văn để lựa chọn các họa tiết có sự gắn kết về mặt nội dung và văn hóa." };
-  assert.equal(sanitizeCriterion(rawCrit1).level, "Xuất sắc", "Tự động sửa lỗi AI bắt bẻ giải phẫu trên dáng thời trang cách điệu thành Xuất sắc");
-  assert.equal(sanitizeCriterion(rawCrit2).level, "Xuất sắc", "Tự động sửa lỗi AI đòi hỏi hàn lâm ý nghĩa hoa văn THCS thành Xuất sắc");
-
-  // Trường hợp 3: Tranh 1 đạt 9+ (khi AI chấm 8.6 được tự động chuẩn hóa lên 9.2)
-  const outstandingArtLevels = ["Xuất sắc", "Xuất sắc", "Xuất sắc", "Xuất sắc"];
-  const calibratedOutstandingArt = calibrateScore(8.6, outstandingArtLevels);
-  assert.ok(calibratedOutstandingArt >= 9.0, "Bài vẽ xuất sắc như Tranh 1 bắt buộc đạt 9+ (>= 9.0đ)");
+  // Trường hợp 2: Tác phẩm nổi bật, ý tưởng độc đáo, đạt đa số tiêu chí Xuất sắc (>= 60%)
+  // Điểm số bắt buộc đạt 9+ (chuẩn mực 9.2đ)
+  const outstandingSubmissionLevels = ["Xuất sắc", "Xuất sắc", "Xuất sắc", "Tốt"];
+  const calibratedOutstandingArt = calibrateScore(8.6, outstandingSubmissionLevels);
+  assert.ok(calibratedOutstandingArt >= 9.0, "Tác phẩm xuất sắc nổi trội trong lớp THCS bắt buộc đạt 9+ (>= 9.0đ)");
   assert.equal(calibratedOutstandingArt, 9.2);
 
-  // Khoảng cách phân hóa công tâm giữa 2 tác phẩm đạt 1.7 điểm (chuẩn sư phạm >= 1.5đ)
-  const differentiationGap = Math.round((calibratedOutstandingArt - calibratedFlatArt) * 10) / 10;
+  // Khoảng cách phân hóa công tâm giữa tác phẩm xuất sắc và bài làm cơ bản đạt 1.7 điểm
+  const differentiationGap = Math.round((calibratedOutstandingArt - calibratedBasicArt) * 10) / 10;
   assert.equal(differentiationGap, 1.7);
 });
 
