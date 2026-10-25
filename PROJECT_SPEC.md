@@ -4,7 +4,7 @@
 * **Tên dự án**: ArtProgress AI (Mĩ thuật tiến bộ số)
 * **Mục tiêu**: Nền tảng Đánh giá Tiến bộ Sư phạm & Hồ sơ Sáng tạo Mĩ thuật THCS theo Chương trình GDPT 2018 (Phục vụ Ngày hội Giáo viên Sáng tạo 2026).
 * **Nền tảng**: Web Application (Next.js 16.4.3 Static Export trên Firebase Hosting).
-* **Trạng thái**: Hoàn thiện toàn bộ các module cốt lõi, 17/17 test tự động PASS.
+* **Trạng thái**: Hoàn thiện toàn bộ các module cốt lõi, 18/18 test tự động PASS.
 
 ---
 
@@ -34,7 +34,7 @@ d:\webgd\
 │   │   └── version.ts                  # Khai báo phiên bản hệ thống tập trung Single Source of Truth (v1.5.0)
 │   ├── lib\
 │   │   ├── __tests__\
-│   │   │   └── artprogress.node-test.mjs # Bộ kiểm thử tự động 17 tiêu chí sư phạm & kỹ thuật (Node test runner)
+│   │   │   └── artprogress.node-test.mjs # Bộ kiểm thử tự động 18 tiêu chí sư phạm & kỹ thuật (Node test runner)
 │   │   ├── firebase.ts                 # Cấu hình Firebase SDK, Firestore CRUD, Storage và Graceful Fallback
 │   │   ├── gemini.ts                   # Tích hợp Gemini 3.5 Flash-Lite Vision, Prompt thẩm định 2 bước
 │   │   ├── image-utils.ts              # Nén ảnh Canvas Native client (1600px, 85% JPEG)
@@ -319,7 +319,7 @@ NEXT_PUBLIC_TEACHER_PIN=your_secret_pin_here
   ```bash
   npm run dev
   ```
-* **Chạy bộ kiểm thử tự động 17 tiêu chí**:
+* **Chạy bộ kiểm thử tự động 18 tiêu chí**:
   ```bash
   node --test src/lib/__tests__/artprogress.node-test.mjs
   ```

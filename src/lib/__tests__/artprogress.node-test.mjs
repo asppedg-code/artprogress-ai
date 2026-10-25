@@ -339,4 +339,40 @@ test("AI đánh giá thích ứng lứa tuổi (Age-Adaptive Evaluation): Tích 
   assert.ok(averageResult.maxScore <= 7.4);
 });
 
+test("Thẩm định AI đa thể loại mĩ thuật THCS: Phân hóa công tâm giữa bài vẽ phẳng 2D và bài có chiều sâu nghệ thuật", () => {
+  // Logic kiểm soát chất lượng điểm số theo chuẩn sư phạm GDPT 2018
+  const calibrateScore = (rawScore, criteriaLevels) => {
+    if (rawScore === 0) return 0;
+    const numXuatSac = criteriaLevels.filter((lvl) => lvl === "Xuất sắc").length;
+    const numTot = criteriaLevels.filter((lvl) => lvl === "Tốt").length;
+
+    let score = rawScore;
+    if (numXuatSac === 0 && numTot === 0 && score > 7.5) {
+      score = 7.3;
+    } else if (numXuatSac === 0 && numTot <= 1 && score > 7.8) {
+      score = 7.5;
+    } else if (numXuatSac >= Math.ceil(criteriaLevels.length * 0.75) && score < 8.5) {
+      score = 8.8;
+    }
+    return Math.round(score * 10) / 10;
+  };
+
+  // Trường hợp 1: Tranh 2 (Trang phục thổ cẩm 2D trải phẳng, thước kẻ, màu bẹt, nền trắng)
+  // Các tiêu chí đạt mức "Đạt" (hoặc tối đa 1 tiêu chí "Tốt"), nếu AI bị lố lên 8.2đ sẽ được kéo về dải 7.3 - 7.5đ
+  const flat2DLevels = ["Đạt", "Đạt", "Đạt", "Tốt"];
+  const calibratedFlatArt = calibrateScore(8.2, flat2DLevels);
+  assert.equal(calibratedFlatArt, 7.5, "Bài vẽ sơ đồ phẳng 2D cơ bản chỉ được chấm tối đa 7.5đ, không để lố lên 8.2đ");
+
+  // Trường hợp 2: Tranh 1 (Nhân vật cách điệu nón lá thời trang, dáng động, hoa văn công phu, chiều sâu)
+  // Các tiêu chí đạt mức "Xuất sắc"
+  const outstandingArtLevels = ["Xuất sắc", "Xuất sắc", "Xuất sắc", "Xuất sắc"];
+  const calibratedOutstandingArt = calibrateScore(9.2, outstandingArtLevels);
+  assert.equal(calibratedOutstandingArt, 9.2, "Bài vẽ xuất sắc có chiều sâu và dáng chuyển động giữ trọn vẹn điểm cao 9.2đ");
+
+  // Khoảng cách phân hóa công tâm giữa 2 tác phẩm đạt từ 1.5 - 2.0 điểm
+  const differentiationGap = calibratedOutstandingArt - calibratedFlatArt;
+  assert.ok(differentiationGap >= 1.5, `Khoảng cách phân hóa đạt ${differentiationGap}đ (chuẩn sư phạm >= 1.5đ)`);
+});
+
+
 

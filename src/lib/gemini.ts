@@ -85,28 +85,49 @@ Hãy quan sát kĩ bức ảnh được gửi lên:
     ]
   + "referenceScore": 0
 
---- BƯỚC 2: PHÂN TÍCH CHUYÊN MÔN THEO NĂNG LỰC LỨA TUỔI (Nếu là tác phẩm mĩ thuật hợp lệ) ---
-Hãy nhận xét đúng với năng lực lứa tuổi học sinh ${gradeClassLabel}:
-1. Nhận diện chất liệu & kỹ thuật: Học sinh vẽ bằng chất liệu gì (sáp dầu, chì màu, bút dạ, màu nước, chì đen...)?
-2. Bố cục (Composition):
-   - Mảng hình chính và mảng phụ đã cân đối trên trang giấy so với lứa tuổi ${studentAge} tuổi chưa?
-   - Có bị quá nhỏ lọt thỏm giữa trang, hay bị lệch hẳn về một góc, hay tràn viền lộn xộn?
-3. Đường nét & Hình thể:
-   - Nét vẽ tự tin, có hồn hay run rẩy, cẩu thả? Tỷ lệ hình thể phù hợp lứa tuổi THCS.
-4. Màu sắc & Sắc độ:
-   - Tranh có phối màu sinh động không? Màu tô có đều tay, có sự cố gắng tạo đậm nhạt hay chuyển màu không?
-5. Mức độ hoàn thiện:
-   - Nền tranh (background) đã được xử lý hay còn bỏ trắng? Tranh có sự đầu tư thời gian không?
-6. Bám sát chủ đề: Nội dung bức tranh có đúng với chủ đề "${topicTitle}" không?
+--- BƯỚC 2: PHÂN TÍCH CHUYÊN MÔN THEO THỂ LOẠI & NĂNG LỰC LỨA TUỔI ---
+Hệ thống này dùng để thẩm định đa dạng chủ đề mĩ thuật THCS:
+- Hội họa & Tranh đề tài (Phong cảnh, Sinh hoạt đời thường, Lễ hội, Gia đình, Học tập...)
+- Thiết kế thời trang & Tạo dáng trang phục (Trang phục truyền thống/thổ cẩm, Dạo phố, Dạ hội...)
+- Đồ họa & Thiết kế truyền thông (Bìa sách, Truyện tranh, Báo tường, Poster / Tranh cổ động...)
+- Mĩ thuật ứng dụng & Trang trí (Đồ vật, Quạt, Đĩa tròn, Họa tiết cách điệu hoa lá / động vật, Đường diềm...)
+- Vẽ theo mẫu & Tĩnh vật, Chân dung (Tĩnh vật lọ hoa và quả, Chân dung...)
+- Tạo hình 3D, xé dán giấy, đất nặn, sản phẩm tái chế.
 
-NGUYÊN TẮC CHO ĐIỂM & ĐÁNH GIÁ (Thang điểm 10) - PHÂN HÓA RÕ RỆT, KHUYẾN KHÍCH NỖ LỰC SÁNG TẠO:
-- TUYỆT ĐỐI KHÔNG CÀO BẰNG MỌI BÀI VẼ Ở MỨC 6-7 ĐIỂM.
-- "Xuất sắc" (Điểm 8.5 - 10.0): Tác phẩm nổi bật, màu sắc sinh động, nét vẽ tự tin giàu cảm xúc, có ý tưởng sáng tạo rõ nét so với lứa tuổi ${studentAge} tuổi. Tranh rất đẹp và chỉn chu PHẢI được trao điểm xứng đáng ở mức này!
-- "Tốt" (Điểm 7.5 - 8.4): Bố cục cân đối, phối màu hài hòa, bài vẽ sạch sẽ, thể hiện rõ sự đầu tư công sức của học sinh.
-- "Đạt" (Điểm 5.0 - 7.4): Bài vẽ trung bình, đúng chủ đề nhưng kỹ thuật còn đơn giản, vẽ sơ sài, tô màu bẹt hoặc bỏ trống nhiều nền.
-- "Chưa đạt" (Điểm 1.0 - 4.9): Tranh chưa hoàn thiện, vẽ nguệch ngoạc cẩu thả, bỏ trắng giấy hoặc vẽ lạc đề.
-- Lời nhận xét: Mang tính sư phạm khích lệ (Assessment for Learning), chỉ ra nét đẹp độc đáo của bức tranh trước, sau đó gợi ý 1-2 điểm kỹ thuật để học sinh tiến bộ.
-- "actionableNextSteps": 2-3 chỉ dẫn kỹ thuật cụ thể, dễ làm theo để học sinh sửa bài.
+1. NGUYÊN TẮC PHÂN HÓA CHIỀU SÂU TẠO HÌNH:
+   * Nhóm bài "Vẽ phẳng 2D / Sơ đồ kỹ thuật cơ bản" (Đạt khá: 7.0 - 7.5 điểm):
+     - Tranh vẽ dạng sơ đồ kỹ thuật trải phẳng 2D (flat sketch), đối xứng bằng thước kẻ cơ học.
+     - Nhân vật đứng dàn phẳng xếp hàng ngang, người que hoặc hình vẽ cứng nhắc, thiếu tương tác không gian.
+     - Tô màu chì/sáp bẹt một lớp đều đều, không có chuyển sắc độ đậm nhạt, không có nếp gấp vải hay bóng đổ.
+     - Nền tranh (background) để trắng hoặc chỉ quét vài vệt màu qua loa.
+     => ĐÁNH GIÁ: Hoàn thành đúng yêu cầu đề tài, vẽ sạch sẽ, nhưng THIẾU CHIỀU SÂU VÀ CẢM XÚC NGHỆ THUẬT.
+     => MỨC ĐIỂM CHUẨN MỰC: 7.0 - 7.5 ĐIỂM (Tối đa 7.7 nếu chi tiết hoa văn rất công phu). TUYỆT ĐỐI KHÔNG CHẤM LÊN 8.0 - 9.0 ĐIỂM!
+   
+   * Nhóm bài "Có chiều sâu, chuyển động và sáng tạo vượt bậc" (Xuất sắc: 8.5 - 9.5+ điểm):
+     - Có dáng chuyển động sống động (người mẫu croquis thời trang mềm mại, nhân vật có cử động phong phú).
+     - Bố cục có lớp lang không gian (tiền cảnh, trung cảnh, hậu cảnh) hoặc luật xa gần.
+     - Kỹ thuật màu sắc có sự chuyển biến (gradient, sáng-tối, vờn khối 3D hoặc hoa văn họa tiết tỉ mỉ tinh xảo).
+     - Nền tranh được xử lý hoàn thiện, tôn bật chủ thể chính.
+     => ĐÁNH GIÁ: Tác phẩm xuất sắc, giàu cảm xúc, có cá tính sáng tạo vượt trội so với lứa tuổi ${studentAge} tuổi.
+     => MỨC ĐIỂM CHUẨN MỰC: 8.5 - 9.5+ ĐIỂM (như bài nón lá thời trang đạt 9.2).
+
+2. NGUYÊN TẮC CHO ĐIỂM & ĐÁNH GIÁ THEO CHUẨN GDPT 2018 (Thang điểm 10):
+   - "Xuất sắc" (Điểm 8.5 - 10.0): Tác phẩm nổi bật, có chiều sâu tạo hình, chuyển động sống động, hòa sắc tinh tế, thể hiện rõ cá tính sáng tạo so với lứa tuổi.
+   - "Tốt" (Điểm 7.8 - 8.4): Bài vẽ có đầu tư tốt, bố cục cân đối vững vàng, bắt đầu có ý thức về chiều sâu/sắc độ/không gian, vượt trội hơn các bài vẽ phẳng 2D thông thường.
+   - "Đạt" (Điểm 5.0 - 7.7): 
+     + Mức 7.0 - 7.5: Bài vẽ sạch sẽ, đúng đề tài nhưng kỹ thuật ở dạng phẳng 2D, sơ đồ trải phẳng, tô màu bẹt một lớp, nền để trắng.
+     + Mức 5.0 - 6.9: Bài vẽ trung bình, nét vẽ còn ngập ngừng vụng về, tô màu loang lổ hoặc chưa kín hình.
+   - "Chưa đạt" (Điểm 1.0 - 4.9): Tranh chưa hoàn thiện, vẽ nguệch ngoạc cẩu thả, bỏ trắng phần lớn giấy hoặc vẽ lạc đề.
+
+3. TÍNH NHẤT QUÁN CỦA "referenceScore":
+   - "referenceScore" PHẢI phản ánh trung thực mức độ đánh giá của từng tiêu chí trong "criteriaReviews":
+     + Nếu hầu hết các tiêu chí là "Đạt" (như bài vẽ phẳng 2D, màu bẹt) => "referenceScore" PHẢI nằm trong khoảng 7.0 - 7.5.
+     + Nếu hầu hết các tiêu chí đều đạt mức "Xuất sắc" => "referenceScore" từ 8.8 - 9.6.
+
+4. LỜI NHẬN XÉT SƯ PHẠM (Assessment for Learning):
+   - Khen ngợi điểm mạnh cụ thể trước (sự kiên nhẫn khi vẽ hoa văn, màu sắc tươi sáng, nét vẽ tự tin...).
+   - Chỉ dẫn chuyên môn cụ thể theo đúng thể loại để giúp học sinh nâng cấp bức tranh từ dạng phẳng 2D lên tác phẩm có chiều sâu nghệ thuật.
+   - "actionableNextSteps": 2-3 chỉ dẫn thực hành cụ thể, dễ làm theo.
 
 ĐỊNH DẠNG JSON ĐẦU RA (Chỉ trả về chuỗi JSON thuần, không bọc markdown hay ký tự thừa):
 {
@@ -124,7 +145,7 @@ NGUYÊN TẮC CHO ĐIỂM & ĐÁNH GIÁ (Thang điểm 10) - PHÂN HÓA RÕ RỆ
     "<Hành động thực hành cụ thể 1>",
     "<Hành động thực hành cụ thể 2>"
   ],
-  "referenceScore": 8.5
+  "referenceScore": 7.5
 }`;
 
     const modelName = process.env.NEXT_PUBLIC_GEMINI_MODEL || process.env.GEMINI_MODEL || "gemini-3.5-flash-lite";
@@ -196,6 +217,25 @@ NGUYÊN TẮC CHO ĐIỂM & ĐÁNH GIÁ (Thang điểm 10) - PHÂN HÓA RÕ RỆ
 
     const isRejectedImage = parsed.referenceScore === 0;
 
+    // Đảm bảo tính nhất quán sư phạm giữa điểm số tham khảo và các mức độ tiêu chí Rubric
+    let calibratedScore = typeof parsed.referenceScore === "number" ? parsed.referenceScore : 7.0;
+    if (!isRejectedImage && normalizedCriteria.length > 0) {
+      const numXuatSac = normalizedCriteria.filter((c) => c.level === "Xuất sắc").length;
+      const numTot = normalizedCriteria.filter((c) => c.level === "Tốt").length;
+
+      // Nếu bài vẽ hoàn toàn chỉ ở mức "Đạt" hoặc "Chưa đạt" (dạng sơ đồ phẳng 2D, màu bẹt, chưa có chiều sâu)
+      if (numXuatSac === 0 && numTot === 0 && calibratedScore > 7.5) {
+        calibratedScore = 7.3;
+      } else if (numXuatSac === 0 && numTot <= 1 && calibratedScore > 7.8) {
+        // Chỉ có tối đa 1 tiêu chí Tốt, còn lại Đạt -> điểm trong dải Khá 7.2 - 7.5
+        calibratedScore = 7.5;
+      } else if (numXuatSac >= Math.ceil(normalizedCriteria.length * 0.75) && calibratedScore < 8.5) {
+        // Hầu hết tiêu chí Xuất sắc -> điểm phải đạt mức Xuất sắc 8.5+
+        calibratedScore = 8.8;
+      }
+      calibratedScore = Math.round(calibratedScore * 10) / 10;
+    }
+
     return {
       status: "pending_moderation", // BẮT BUỘC: Bản nháp chờ giáo viên duyệt
       criteriaReviews: normalizedCriteria,
@@ -211,10 +251,7 @@ NGUYÊN TẮC CHO ĐIỂM & ĐÁNH GIÁ (Thang điểm 10) - PHÂN HÓA RÕ RỆ
               "Đặt bức tranh vẽ phẳng ở nơi đủ ánh sáng.",
               "Chụp ảnh trực diện toàn bộ bức tranh và gửi lại.",
             ],
-      referenceScore:
-        typeof parsed.referenceScore === "number"
-          ? parsed.referenceScore
-          : 7.0,
+      referenceScore: isRejectedImage ? 0 : calibratedScore,
     };
   } catch (error) {
     console.error("Lỗi khi gọi Gemini Vision API:", error);
