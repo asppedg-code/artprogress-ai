@@ -116,33 +116,52 @@ QUY TRÌNH ĐÁNH GIÁ 2 BƯỚC:
   "referenceScore": 9.2
 }`;
 
-    const modelName = process.env.NEXT_PUBLIC_GEMINI_MODEL || process.env.GEMINI_MODEL || "gemini-3.5-flash-lite";
-    const callPromise = ai.models.generateContent({
-      model: modelName,
-      contents: [
-        {
-          role: "user",
-          parts: [
-            { text: prompt },
-            {
-              inlineData: {
-                data: imageBase64.replace(/^data:image\/\w+;base64,/, ""),
-                mimeType: mimeType || "image/jpeg",
+    const primaryModel = process.env.NEXT_PUBLIC_GEMINI_MODEL || process.env.GEMINI_MODEL || "gemini-3.5-flash-lite";
+    const fallbackModel = process.env.NEXT_PUBLIC_GEMINI_FALLBACK_MODEL || process.env.GEMINI_FALLBACK_MODEL || "gemini-3.1-flash-lite";
+
+    const callGeminiWithTimeout = async (model: string) => {
+      const callPromise = ai.models.generateContent({
+        model,
+        contents: [
+          {
+            role: "user",
+            parts: [
+              { text: prompt },
+              {
+                inlineData: {
+                  data: imageBase64.replace(/^data:image\/\w+;base64,/, ""),
+                  mimeType: mimeType || "image/jpeg",
+                },
               },
-            },
-          ],
+            ],
+          },
+        ],
+        config: {
+          responseMimeType: "application/json",
         },
-      ],
-      config: {
-        responseMimeType: "application/json",
-      },
-    });
+      });
 
-    const timeoutPromise = new Promise<never>((_, reject) =>
-      setTimeout(() => reject(new Error("Gemini API timeout sau 20 giây")), 20000)
-    );
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error(`Gemini API timeout sau 20 giây với model ${model}`)), 20000)
+      );
 
-    const response = await Promise.race([callPromise, timeoutPromise]);
+      return await Promise.race([callPromise, timeoutPromise]);
+    };
+
+    let response;
+    try {
+      response = await callGeminiWithTimeout(primaryModel);
+    } catch (primaryError) {
+      console.warn(
+        `[ArtProgress AI] Model chính (${primaryModel}) gặp sự cố (quá tải / high demand / unavailable). Tự động chuyển xuống model dự phòng (${fallbackModel}). Chi tiết:`,
+        primaryError
+      );
+      if (primaryModel !== fallbackModel) {
+        response = await callGeminiWithTimeout(fallbackModel);
+      } else {
+        throw primaryError;
+      }
+    }
 
     const text = response.text || "";
     const cleanText = text.replace(/```json\n?|\n?```/g, "").trim();

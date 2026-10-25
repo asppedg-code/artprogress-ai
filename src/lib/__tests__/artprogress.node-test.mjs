@@ -376,5 +376,44 @@ test("Thẩm định AI mĩ thuật THCS (GDPT 2018): Phân bổ điểm số nh
   assert.equal(differentiationGap, 1.7);
 });
 
+test("Cơ chế chuyển đổi mô hình AI tự động (Automatic Model Fallback): Chuyển xuống gemini-3.1-flash-lite khi model chính quá tải/unavailable", async () => {
+  const callModelWithFallback = async (primaryModel, fallbackModel, modelInvoker) => {
+    try {
+      return await modelInvoker(primaryModel);
+    } catch (primaryError) {
+      if (primaryModel !== fallbackModel) {
+        return await modelInvoker(fallbackModel);
+      }
+      throw primaryError;
+    }
+  };
+
+  // Trường hợp 1: Model chính (gemini-3.5-flash-lite) hoạt động bình thường
+  let invokedModels = [];
+  const normalInvoker = async (model) => {
+    invokedModels.push(model);
+    return { status: "success", model, responseText: "Phân tích thành công" };
+  };
+
+  const normalResult = await callModelWithFallback("gemini-3.5-flash-lite", "gemini-3.1-flash-lite", normalInvoker);
+  assert.equal(normalResult.model, "gemini-3.5-flash-lite");
+  assert.deepEqual(invokedModels, ["gemini-3.5-flash-lite"]);
+
+  // Trường hợp 2: Model chính bị high demand / 503 / 429 unavailable -> Tự động chuyển xuống gemini-3.1-flash-lite
+  invokedModels = [];
+  const overloadedInvoker = async (model) => {
+    invokedModels.push(model);
+    if (model === "gemini-3.5-flash-lite") {
+      throw new Error("503 Service Unavailable: High demand on gemini-3.5-flash-lite");
+    }
+    return { status: "success", model, responseText: "Phân tích thành công từ model dự phòng" };
+  };
+
+  const fallbackResult = await callModelWithFallback("gemini-3.5-flash-lite", "gemini-3.1-flash-lite", overloadedInvoker);
+  assert.equal(fallbackResult.model, "gemini-3.1-flash-lite");
+  assert.deepEqual(invokedModels, ["gemini-3.5-flash-lite", "gemini-3.1-flash-lite"]);
+  assert.equal(fallbackResult.responseText, "Phân tích thành công từ model dự phòng");
+});
+
 
 
