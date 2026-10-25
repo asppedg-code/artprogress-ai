@@ -4,7 +4,7 @@
 * **Tên dự án**: ArtProgress AI (Mĩ thuật tiến bộ số)
 * **Mục tiêu**: Nền tảng Đánh giá Tiến bộ Sư phạm & Hồ sơ Sáng tạo Mĩ thuật THCS theo Chương trình GDPT 2018 (Phục vụ Ngày hội Giáo viên Sáng tạo 2026).
 * **Nền tảng**: Web Application (Next.js 16.4.3 Static Export trên Firebase Hosting).
-* **Trạng thái**: Hoàn thiện toàn bộ các module cốt lõi, 15/15 test tự động PASS.
+* **Trạng thái**: Hoàn thiện toàn bộ các module cốt lõi, 17/17 test tự động PASS.
 
 ---
 
@@ -34,7 +34,7 @@ d:\webgd\
 │   │   └── version.ts                  # Khai báo phiên bản hệ thống tập trung Single Source of Truth (v1.5.0)
 │   ├── lib\
 │   │   ├── __tests__\
-│   │   │   └── artprogress.node-test.mjs # Bộ kiểm thử tự động 15 tiêu chí sư phạm & kỹ thuật (Node test runner)
+│   │   │   └── artprogress.node-test.mjs # Bộ kiểm thử tự động 17 tiêu chí sư phạm & kỹ thuật (Node test runner)
 │   │   ├── firebase.ts                 # Cấu hình Firebase SDK, Firestore CRUD, Storage và Graceful Fallback
 │   │   ├── gemini.ts                   # Tích hợp Gemini 3.5 Flash-Lite Vision, Prompt thẩm định 2 bước
 │   │   ├── image-utils.ts              # Nén ảnh Canvas Native client (1600px, 85% JPEG)
@@ -168,8 +168,21 @@ export interface Artwork {
    * Khách: Ẩn toàn bộ mục quản trị lớp và hồ sơ bài vẽ nội bộ.
    * Giáo viên: Thấy bộ chuyển 4 Khối, 16 Lớp, số bài nộp, số bài chờ duyệt, nút Quản lý HS.
 
-### 3.2. Luồng Nộp bài & Thẩm định AI (Submission & AI Evaluation Flow)
+### 3.2. Luồng Nộp bài & Thẩm định AI Thích Ứng Lứa Tuổi (Age-Adaptive Submission & AI Evaluation Flow)
 * **Chọn chủ đề linh hoạt khi nộp bài mới**: Hộp thoại [`UploadArtworkModal.tsx`](file:///d:/webgd/src/components/UploadArtworkModal.tsx) tích hợp danh mục chọn chủ đề bài học (`<select>`). Học sinh có thể chọn bất kỳ chủ đề đang mở nào trong khối lớp để nộp bài (kèm xem trước tóm tắt yêu cầu cần đạt), thay vì bị bó hẹp vào một chủ đề duy nhất trên nền giao diện. Đối với bài nộp hoàn thiện/chỉnh sửa (`isRevision = true`), hệ thống khóa cố định chủ đề gốc của tác phẩm để đảm bảo tính nhất quán Before–After.
+* **Đánh giá thích ứng tâm sinh lý lứa tuổi học sinh THCS (Age-Adaptive AI Rubric)**:
+  - Hệ thống tự động trích xuất thông tin Khối lớp và độ tuổi thực tế (Khối 6: 11 tuổi, Khối 7: 12 tuổi, Khối 8: 13 tuổi, Khối 9: 14 tuổi) truyền vào prompt phân tích của Gemini Vision.
+  - **Khắc phục triệt để tình trạng cào bằng 6-7 điểm**:
+    + Với học sinh lớp 6 mới chuyển cấp: Tôn trọng nét vẽ mộc mạc, hồn nhiên; tranh có phối màu phong phú, mảng hình rõ ràng hoặc ý tưởng ngộ nghĩnh sẽ được chấm mức Tốt đến Xuất sắc (8.0 - 9.5 điểm), không đòi hỏi giải phẫu hay vờn khối như người lớn.
+    + Với tranh vẽ đẹp, có sự đầu tư thời gian, màu sắc hài hòa và sáng tạo nổi bật so với lứa tuổi THCS: Bắt buộc được chấm từ 8.0 đến 9.5 điểm (thậm chí 10.0 nếu rất đặc sắc).
+    + Với bài vẽ đại trà, còn đơn giản sơ sài: Chấm mức Đạt (5.0 - 7.4 điểm).
+* **Quyền can thiệp sư phạm toàn diện của Giáo viên (Human-in-the-Loop Editorial Controls)**:
+  - Trợ lý AI chỉ đóng vai trò đề xuất nháp ban đầu (`pending_moderation`).
+  - Tại bảng chấm điểm, Giáo viên có toàn quyền:
+    1. **Chỉnh sửa điểm số**: Bấm nút sửa điểm cạnh huy hiệu điểm để nhập số điểm chính xác theo thang 10 (bước nhảy 0.1đ).
+    2. **Chỉnh sửa Điểm nổi bật**: Hiệu chỉnh trực tiếp đoạn văn bản tóm tắt điểm sáng của bài vẽ (`overallStrength`).
+    3. **Chỉnh sửa Đánh giá theo Rubric**: Thay đổi linh hoạt mức độ đạt ("Chưa đạt", "Đạt", "Tốt", "Xuất sắc") và chỉnh sửa chi tiết văn bản Ưu điểm / Điểm cần cải thiện của từng tiêu chí.
+    4. **Ghi lời phê sư phạm riêng**: Viết lời nhắn động viên, dặn dò cá nhân hóa cho học sinh (`teacherNotes`).
 
 ```mermaid
 sequenceDiagram
@@ -177,21 +190,22 @@ sequenceDiagram
     actor HS as Học sinh
     participant Modal as UploadArtworkModal
     participant Canvas as Canvas ImageUtils
-    participant Gemini as Gemini 3.5 Flash-Lite
-    participant Store as Firestore / LocalStorage
+    participant Gemini as Gemini 3.5 Flash-Lite (Age-Adaptive)
+    participant Store as Firestore / LocalStorage / IndexedDB
     actor GV as Giáo viên
 
     HS->>Modal: Chọn ảnh bài vẽ (5MB-12MB)
     Modal->>Canvas: Nén ảnh tự động (1600px, 85% JPEG)
     Canvas-->>Modal: Trả về Base64 nén (~300KB)
     HS->>Modal: Bấm "Nộp bài"
-    Modal->>Gemini: Gửi ảnh + Rubric bài học (Prompt 2 bước)
-    Note over Gemini: Bước 1: Thẩm định ảnh thật hay Screenshot/Tài liệu<br/>Bước 2: Đánh giá bố cục, màu sắc, kỹ thuật
-    Gemini-->>Store: Trả về ArtworkFeedback (status = "pending_moderation")
-    Store-->>HS: Lưu bài vẽ thành công (Chờ GV duyệt)
-    GV->>Store: Xem bài vẽ trong bảng trượt (Drawer)
-    GV->>Store: Hiệu chỉnh lời phê & Bấm "Phê duyệt" (status = "approved")
-    Store-->>HS: Học sinh nhìn thấy nhận xét & hướng dẫn thực hành
+    Modal->>Gemini: Gửi ảnh + Rubric + Khối lớp & Độ tuổi (11-14 tuổi)
+    Note over Gemini: Bước 1: Thẩm định ảnh mĩ thuật thực tế<br/>Bước 2: Phân tích theo chuẩn lứa tuổi THCS (Phân hóa 8.0-9.5đ)
+    Gemini-->>Store: Trả về ArtworkFeedback nháp (status = "pending_moderation")
+    Store-->>HS: Lưu bài vẽ an toàn (Chờ GV duyệt)
+    GV->>Store: Mở Bảng Chấm Điểm & Lời Phê trong Drawer
+    Note over GV: GV hiệu chỉnh: Điểm số, Điểm nổi bật, Rubric & Lời phê
+    GV->>Store: Bấm "Duyệt & Phát hành" (status = "approved")
+    Store-->>HS: Học sinh nhìn thấy nhận xét & hướng dẫn thực hành chính thức
 ```
 
 ### 3.3. Luồng Quản lý Danh sách Học sinh (Roster Management)
@@ -305,7 +319,7 @@ NEXT_PUBLIC_TEACHER_PIN=your_secret_pin_here
   ```bash
   npm run dev
   ```
-* **Chạy bộ kiểm thử tự động 15 tiêu chí**:
+* **Chạy bộ kiểm thử tự động 17 tiêu chí**:
   ```bash
   node --test src/lib/__tests__/artprogress.node-test.mjs
   ```

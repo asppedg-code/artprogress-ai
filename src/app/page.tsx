@@ -196,6 +196,19 @@ export default function DashboardPage() {
   const [isEditingTeacherNotes, setIsEditingTeacherNotes] = useState(false);
   const [teacherNotesInput, setTeacherNotesInput] = useState("");
 
+  // Trạng thái chỉnh sửa điểm số (Giáo viên)
+  const [isEditingScore, setIsEditingScore] = useState(false);
+  const [scoreInput, setScoreInput] = useState("");
+
+  // Trạng thái chỉnh sửa điểm nổi bật tác phẩm (Giáo viên)
+  const [isEditingOverallStrength, setIsEditingOverallStrength] = useState(false);
+  const [overallStrengthInput, setOverallStrengthInput] = useState("");
+
+  // Trạng thái chỉnh sửa chi tiết tiêu chí Rubric (Giáo viên)
+  const [editingCriterionId, setEditingCriterionId] = useState<string | null>(null);
+  const [criterionStrengthInput, setCriterionStrengthInput] = useState("");
+  const [criterionImprovementInput, setCriterionImprovementInput] = useState("");
+
   // Trạng thái tự đánh giá của học sinh
   const [reflectionInput, setReflectionInput] = useState("");
 
@@ -726,6 +739,8 @@ export default function DashboardPage() {
         imageBase64: data.imageBase64,
         topicTitle: effectiveTopic.title,
         rubric: effectiveTopic.rubric,
+        grade: selectedClass.grade,
+        className: selectedClass.name,
       });
 
       if (res.success && res.artwork) {
@@ -798,6 +813,64 @@ export default function DashboardPage() {
     setArtworks((prev) => prev.map((a) => (a.id === updated.id ? updated : a)));
     setSelectedArtwork(updated);
     setIsEditingTeacherNotes(false);
+    saveArtworkToFirestore(updated);
+  };
+
+  // Giáo viên cập nhật điểm số bài vẽ
+  const handleSaveScore = (score: number) => {
+    if (!selectedArtwork || !selectedArtwork.feedback) return;
+    const clampedScore = Math.min(10, Math.max(0, Math.round(score * 10) / 10));
+    const updated: Artwork = {
+      ...selectedArtwork,
+      feedback: {
+        ...selectedArtwork.feedback,
+        referenceScore: clampedScore,
+      },
+    };
+    setArtworks((prev) => prev.map((a) => (a.id === updated.id ? updated : a)));
+    setSelectedArtwork(updated);
+    setIsEditingScore(false);
+    saveArtworkToFirestore(updated);
+  };
+
+  // Giáo viên cập nhật điểm nổi bật
+  const handleSaveOverallStrength = () => {
+    if (!selectedArtwork || !selectedArtwork.feedback) return;
+    const updated: Artwork = {
+      ...selectedArtwork,
+      feedback: {
+        ...selectedArtwork.feedback,
+        overallStrength: overallStrengthInput.trim() || selectedArtwork.feedback.overallStrength,
+      },
+    };
+    setArtworks((prev) => prev.map((a) => (a.id === updated.id ? updated : a)));
+    setSelectedArtwork(updated);
+    setIsEditingOverallStrength(false);
+    saveArtworkToFirestore(updated);
+  };
+
+  // Giáo viên cập nhật nhận xét chi tiết tiêu chí Rubric
+  const handleSaveCriterionReview = (criterionId: string) => {
+    if (!selectedArtwork || !selectedArtwork.feedback) return;
+    const updatedReviews = selectedArtwork.feedback.criteriaReviews.map((crit) =>
+      crit.criterionId === criterionId
+        ? {
+            ...crit,
+            strength: criterionStrengthInput.trim() || crit.strength,
+            improvement: criterionImprovementInput.trim() || crit.improvement,
+          }
+        : crit
+    );
+    const updated: Artwork = {
+      ...selectedArtwork,
+      feedback: {
+        ...selectedArtwork.feedback,
+        criteriaReviews: updatedReviews,
+      },
+    };
+    setArtworks((prev) => prev.map((a) => (a.id === updated.id ? updated : a)));
+    setSelectedArtwork(updated);
+    setEditingCriterionId(null);
     saveArtworkToFirestore(updated);
   };
 
@@ -2274,21 +2347,77 @@ export default function DashboardPage() {
                     </div>
 
                     <div className="flex items-center gap-2">
-                      {selectedArtwork?.feedback?.referenceScore !== undefined && (
-                        <span
-                          className={`text-xs font-bold px-2.5 py-0.5 rounded-full border ${selectedArtwork.feedback.referenceScore > 0
-                            ? "bg-[#F6EDE8] text-[#C86446] border-[#E8D7CF]"
-                            : "bg-rose-50 text-rose-700 border-rose-200"
-                            }`}
-                        >
-                          {selectedArtwork.feedback.referenceScore > 0
-                            ? `${selectedArtwork.feedback.referenceScore}/10 đ`
-                            : "Chưa chấm điểm"}
-                        </span>
+                      {isEditingScore ? (
+                        <div className="flex items-center gap-1 bg-white px-2 py-0.5 rounded-full border border-[#C86446] shadow-xs">
+                          <input
+                            type="number"
+                            min="0"
+                            max="10"
+                            step="0.1"
+                            value={scoreInput}
+                            onChange={(e) => setScoreInput(e.target.value)}
+                            className="w-12 text-xs font-bold text-[#C86446] focus:outline-none text-center"
+                            autoFocus
+                          />
+                          <span className="text-[11px] text-stone-400 font-semibold">/10</span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const parsed = parseFloat(scoreInput);
+                              if (!isNaN(parsed)) handleSaveScore(parsed);
+                              else setIsEditingScore(false);
+                            }}
+                            className="text-[#C86446] hover:text-[#9e3b20] p-0.5 cursor-pointer"
+                            title="Lưu điểm"
+                          >
+                            <Check className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setIsEditingScore(false)}
+                            className="text-stone-400 hover:text-stone-700 p-0.5 cursor-pointer"
+                            title="Hủy"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-1">
+                          {selectedArtwork?.feedback?.referenceScore !== undefined && (
+                            <span
+                              className={`text-xs font-bold px-2.5 py-0.5 rounded-full border ${selectedArtwork.feedback.referenceScore > 0
+                                ? "bg-[#F6EDE8] text-[#C86446] border-[#E8D7CF]"
+                                : "bg-rose-50 text-rose-700 border-rose-200"
+                                }`}
+                            >
+                              {selectedArtwork.feedback.referenceScore > 0
+                                ? `${selectedArtwork.feedback.referenceScore}/10 đ`
+                                : "Chưa chấm điểm"}
+                            </span>
+                          )}
+                          {role === "teacher" && selectedArtwork?.feedback && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setScoreInput(String(selectedArtwork.feedback?.referenceScore ?? 8.0));
+                                setIsEditingScore(true);
+                              }}
+                              className="w-6 h-6 rounded-md hover:bg-[#F6EDE8] text-stone-400 hover:text-[#C86446] flex items-center justify-center transition-colors cursor-pointer"
+                              title="Chỉnh sửa điểm số"
+                            >
+                              <Edit3 className="w-3 h-3" />
+                            </button>
+                          )}
+                        </div>
                       )}
                       <button
                         type="button"
-                        onClick={() => setIsEvaluationDrawerOpen(false)}
+                        onClick={() => {
+                          setIsEvaluationDrawerOpen(false);
+                          setIsEditingScore(false);
+                          setIsEditingOverallStrength(false);
+                          setEditingCriterionId(null);
+                        }}
                         className="w-7 h-7 rounded-lg hover:bg-stone-200/60 text-stone-400 hover:text-stone-700 flex items-center justify-center transition-colors cursor-pointer"
                       >
                         <X className="w-4 h-4" />
@@ -2317,13 +2446,59 @@ export default function DashboardPage() {
                       ) : selectedArtwork.feedback ? (
                         <>
                           {/* Điểm nổi bật chung */}
-                          <div className="p-3 bg-[#EDF3EF]/70 border border-[#D1E0D6] rounded-xl text-xs space-y-1">
-                            <span className="font-bold text-[#4F6B58] block text-[11px]">
-                              Điểm nổi bật của tác phẩm:
-                            </span>
-                            <p className="text-stone-700 leading-relaxed text-[11.5px]">
-                              {selectedArtwork.feedback.overallStrength}
-                            </p>
+                          <div className="p-3 bg-[#EDF3EF]/70 border border-[#D1E0D6] rounded-xl text-xs space-y-1.5">
+                            <div className="flex items-center justify-between">
+                              <span className="font-bold text-[#4F6B58] block text-[11px]">
+                                Điểm nổi bật của tác phẩm:
+                              </span>
+                              {role === "teacher" && !isEditingOverallStrength && (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setOverallStrengthInput(selectedArtwork.feedback?.overallStrength || "");
+                                    setIsEditingOverallStrength(true);
+                                  }}
+                                  className="text-[#4F6B58] hover:underline text-[10px] flex items-center gap-0.5 cursor-pointer font-medium"
+                                >
+                                  <Edit3 className="w-3 h-3" />
+                                  <span>Sửa điểm nổi bật</span>
+                                </button>
+                              )}
+                            </div>
+
+                            {isEditingOverallStrength ? (
+                              <div className="space-y-2 mt-1">
+                                <textarea
+                                  rows={3}
+                                  value={overallStrengthInput}
+                                  onChange={(e) => setOverallStrengthInput(e.target.value)}
+                                  placeholder="Nhập điểm nổi bật của tác phẩm..."
+                                  className="w-full text-xs p-2 rounded-lg border border-[#D1E0D6] bg-white focus:outline-none focus:ring-1 focus:ring-[#4F6B58]"
+                                  autoFocus
+                                />
+                                <div className="flex justify-end gap-1.5">
+                                  <button
+                                    type="button"
+                                    onClick={() => setIsEditingOverallStrength(false)}
+                                    className="px-2.5 py-1 text-[11px] rounded text-stone-600 hover:bg-stone-200 cursor-pointer"
+                                  >
+                                    Hủy
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={handleSaveOverallStrength}
+                                    className="px-2.5 py-1 text-[11px] rounded bg-[#4F6B58] text-white font-medium flex items-center gap-1 cursor-pointer hover:bg-[#3e5645]"
+                                  >
+                                    <Save className="w-3 h-3" />
+                                    <span>Lưu điểm nổi bật</span>
+                                  </button>
+                                </div>
+                              </div>
+                            ) : (
+                              <p className="text-stone-700 leading-relaxed text-[11.5px]">
+                                {selectedArtwork.feedback.overallStrength}
+                              </p>
+                            )}
                           </div>
 
                           {/* Lời phê riêng của giáo viên (Inline Editing) */}
@@ -2388,66 +2563,134 @@ export default function DashboardPage() {
                               <span>Trọng số 100%</span>
                             </div>
 
-                            {selectedArtwork.feedback.criteriaReviews.map((crit) => (
-                              <div
-                                key={crit.criterionId}
-                                className="p-3 rounded-xl border border-[#EAE5DC] bg-[#FAF8F5]/60 space-y-2 text-xs hover:border-stone-300 transition-colors"
-                              >
-                                <div className="flex items-center justify-between">
-                                  <span className="font-bold text-stone-800 text-[11px]">
-                                    {crit.criterionName}
-                                  </span>
+                            {selectedArtwork.feedback.criteriaReviews.map((crit) => {
+                              const isEditingCrit = editingCriterionId === crit.criterionId;
+                              return (
+                                <div
+                                  key={crit.criterionId}
+                                  className="p-3 rounded-xl border border-[#EAE5DC] bg-[#FAF8F5]/60 space-y-2 text-xs hover:border-stone-300 transition-colors"
+                                >
+                                  <div className="flex items-center justify-between">
+                                    <span className="font-bold text-stone-800 text-[11px]">
+                                      {crit.criterionName}
+                                    </span>
 
-                                  {/* Bấm đổi nhanh mức độ biểu hiện */}
-                                  {role === "teacher" ? (
-                                    <div className="flex items-center gap-0.5 bg-white p-0.5 rounded-lg border border-[#EAE5DC]">
-                                      {(["Chưa đạt", "Đạt", "Tốt", "Xuất sắc"] as const).map((lvl) => {
-                                        const isCurrent = crit.level === lvl;
-                                        return (
-                                          <button
-                                            key={lvl}
-                                            type="button"
-                                            onClick={() => handleUpdateCriterionLevel(crit.criterionId, lvl)}
-                                            className={`px-1.5 py-0.5 text-[9px] rounded font-semibold transition-all cursor-pointer ${isCurrent
-                                              ? lvl === "Xuất sắc"
-                                                ? "bg-purple-100 text-purple-800 font-bold"
-                                                : lvl === "Tốt"
-                                                  ? "bg-blue-100 text-blue-800 font-bold"
-                                                  : lvl === "Đạt"
-                                                    ? "bg-emerald-100 text-emerald-800 font-bold"
-                                                    : "bg-amber-100 text-amber-800 font-bold"
-                                              : "text-stone-400 hover:text-stone-700 hover:bg-stone-50"
-                                              }`}
-                                          >
-                                            {lvl}
-                                          </button>
-                                        );
-                                      })}
+                                    {/* Bấm đổi nhanh mức độ biểu hiện */}
+                                    {role === "teacher" ? (
+                                      <div className="flex items-center gap-0.5 bg-white p-0.5 rounded-lg border border-[#EAE5DC]">
+                                        {(["Chưa đạt", "Đạt", "Tốt", "Xuất sắc"] as const).map((lvl) => {
+                                          const isCurrent = crit.level === lvl;
+                                          return (
+                                            <button
+                                              key={lvl}
+                                              type="button"
+                                              onClick={() => handleUpdateCriterionLevel(crit.criterionId, lvl)}
+                                              className={`px-1.5 py-0.5 text-[9px] rounded font-semibold transition-all cursor-pointer ${isCurrent
+                                                ? lvl === "Xuất sắc"
+                                                  ? "bg-purple-100 text-purple-800 font-bold"
+                                                  : lvl === "Tốt"
+                                                    ? "bg-blue-100 text-blue-800 font-bold"
+                                                    : lvl === "Đạt"
+                                                      ? "bg-emerald-100 text-emerald-800 font-bold"
+                                                      : "bg-amber-100 text-amber-800 font-bold"
+                                                : "text-stone-400 hover:text-stone-700 hover:bg-stone-50"
+                                                }`}
+                                            >
+                                              {lvl}
+                                            </button>
+                                          );
+                                        })}
+                                      </div>
+                                    ) : (
+                                      <span
+                                        className={`text-[9px] px-2 py-0.5 rounded-full font-semibold ${crit.level === "Xuất sắc"
+                                          ? "bg-purple-100 text-purple-700"
+                                          : crit.level === "Tốt"
+                                            ? "bg-blue-100 text-blue-700"
+                                            : crit.level === "Đạt"
+                                              ? "bg-emerald-100 text-emerald-700"
+                                              : "bg-amber-100 text-amber-700"
+                                          }`}
+                                      >
+                                        {crit.level}
+                                      </span>
+                                    )}
+                                  </div>
+
+                                  {isEditingCrit ? (
+                                    <div className="space-y-2 pt-1 border-t border-[#EAE5DC]">
+                                      <div>
+                                        <label className="text-[10px] font-semibold text-emerald-800 block mb-0.5">
+                                          Ưu điểm tiêu chí:
+                                        </label>
+                                        <textarea
+                                          rows={2}
+                                          value={criterionStrengthInput}
+                                          onChange={(e) => setCriterionStrengthInput(e.target.value)}
+                                          placeholder="Nhập ưu điểm tiêu chí..."
+                                          className="w-full text-[11px] p-2 rounded-lg border border-[#D1E0D6] bg-white focus:outline-none focus:ring-1 focus:ring-emerald-600"
+                                          autoFocus
+                                        />
+                                      </div>
+                                      <div>
+                                        <label className="text-[10px] font-semibold text-[#C86446] block mb-0.5">
+                                          Điểm cần cải thiện:
+                                        </label>
+                                        <textarea
+                                          rows={2}
+                                          value={criterionImprovementInput}
+                                          onChange={(e) => setCriterionImprovementInput(e.target.value)}
+                                          placeholder="Nhập gợi ý cải thiện..."
+                                          className="w-full text-[11px] p-2 rounded-lg border border-[#E8D7CF] bg-white focus:outline-none focus:ring-1 focus:ring-[#C86446]"
+                                        />
+                                      </div>
+                                      <div className="flex justify-end gap-1.5 pt-1">
+                                        <button
+                                          type="button"
+                                          onClick={() => setEditingCriterionId(null)}
+                                          className="px-2 py-0.5 text-[10px] rounded text-stone-600 hover:bg-stone-200 cursor-pointer"
+                                        >
+                                          Hủy
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={() => handleSaveCriterionReview(crit.criterionId)}
+                                          className="px-2 py-0.5 text-[10px] rounded bg-[#C86446] text-white font-medium flex items-center gap-1 cursor-pointer hover:bg-[#a84d33]"
+                                        >
+                                          <Save className="w-2.5 h-2.5" />
+                                          <span>Lưu nhận xét</span>
+                                        </button>
+                                      </div>
                                     </div>
                                   ) : (
-                                    <span
-                                      className={`text-[9px] px-2 py-0.5 rounded-full font-semibold ${crit.level === "Xuất sắc"
-                                        ? "bg-purple-100 text-purple-700"
-                                        : crit.level === "Tốt"
-                                          ? "bg-blue-100 text-blue-700"
-                                          : crit.level === "Đạt"
-                                            ? "bg-emerald-100 text-emerald-700"
-                                            : "bg-amber-100 text-amber-700"
-                                        }`}
-                                    >
-                                      {crit.level}
-                                    </span>
+                                    <>
+                                      <p className="text-stone-600 text-[11px] leading-relaxed">
+                                        <strong className="text-emerald-700 font-medium">Ưu điểm:</strong> {crit.strength}
+                                      </p>
+                                      <p className="text-stone-600 text-[11px] leading-relaxed">
+                                        <strong className="text-[#C86446] font-medium">Cải thiện:</strong> {crit.improvement}
+                                      </p>
+                                      {role === "teacher" && (
+                                        <div className="flex justify-end pt-0.5">
+                                          <button
+                                            type="button"
+                                            onClick={() => {
+                                              setEditingCriterionId(crit.criterionId);
+                                              setCriterionStrengthInput(crit.strength);
+                                              setCriterionImprovementInput(crit.improvement);
+                                            }}
+                                            className="text-[10px] text-stone-400 hover:text-[#C86446] flex items-center gap-1 cursor-pointer font-medium"
+                                          >
+                                            <Edit3 className="w-2.5 h-2.5" />
+                                            <span>Sửa nhận xét tiêu chí</span>
+                                          </button>
+                                        </div>
+                                      )}
+                                    </>
                                   )}
                                 </div>
-
-                                <p className="text-stone-600 text-[11px] leading-relaxed">
-                                  <strong className="text-emerald-700 font-medium">Ưu điểm:</strong> {crit.strength}
-                                </p>
-                                <p className="text-stone-600 text-[11px] leading-relaxed">
-                                  <strong className="text-[#C86446] font-medium">Cải thiện:</strong> {crit.improvement}
-                                </p>
-                              </div>
-                            ))}
+                              );
+                            })}
                           </div>
 
                           {/* Chỉ dẫn thực hành tiếp theo */}

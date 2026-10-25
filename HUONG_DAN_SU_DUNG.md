@@ -81,11 +81,14 @@ flowchart TD
 
 #### 4. Đánh giá, Chấm điểm Rubric & Phê duyệt bài vẽ
 1. Trong mục **"Hồ sơ bài vẽ"**, chọn bài vẽ của học sinh cần chấm.
-2. Tại bảng đánh giá sư phạm bên phải:
-   - **Kéo các thanh trượt Rubric** tương ứng với từng tiêu chí để cho điểm.
-   - **Ghi lời phê sư phạm định hướng**: Nhấp chuột vào ô nhận xét để bổ sung lời động viên hoặc hướng dẫn sửa nét/màu cụ thể cho em học sinh đó.
-   - Bấm nút **"Duyệt lời phê"** để gửi kết quả về cho học sinh.
-3. **Đưa tranh vào Triển lãm 3D**:
+2. Trợ lý AI sẽ tự động phân tích bài vẽ dựa trên độ tuổi học sinh (Khối 6: 11 tuổi, Khối 7: 12 tuổi, Khối 8: 13 tuổi, Khối 9: 14 tuổi), phân hóa rõ rệt chất lượng tranh: Tranh đẹp, có sự đầu tư thời gian và sáng tạo nổi bật sẽ được đề xuất điểm số xứng đáng (8.0 - 9.5 điểm), tránh cào bằng 6-7 điểm như bài đại trà.
+3. **Quyền chỉnh sửa sư phạm toàn diện của Giáo viên** tại Bảng Chấm Điểm bên phải:
+   - **Chỉnh sửa điểm số**: Bấm nút bút chì cạnh huy hiệu điểm số để nhập số điểm mong muốn (thang 10, hỗ trợ số thập phân như 8.5, 9.2).
+   - **Chỉnh sửa Điểm nổi bật**: Bấm **"Sửa điểm nổi bật"** để hiệu chỉnh nội dung tóm tắt điểm sáng của tác phẩm.
+   - **Chỉnh sửa đánh giá Rubric**: Bấm chuyển nhanh 4 mức độ (*Chưa đạt, Đạt, Tốt, Xuất sắc*) hoặc bấm **"Sửa nhận xét tiêu chí"** để viết lại Ưu điểm và Điểm cần cải thiện riêng cho từng tiêu chí.
+   - **Ghi lời phê sư phạm định hướng**: Bấm **"Sửa lời phê"** để gửi gắm lời dặn dò, động viên học sinh.
+   - Bấm nút **"Duyệt & Phát hành"** để chính thức gửi kết quả đánh giá cho học sinh xem.
+4. **Đưa tranh vào Triển lãm 3D**:
    - Khi bài vẽ đạt chất lượng tốt, Thầy/Cô gạt nút **"Công khai triển lãm"** sang màu xanh. Bức tranh sẽ tự động xuất hiện trên tường danh dự của Phòng Triển Lãm 3D!
 
 #### 5. Xuất bản Báo cáo Minh chứng Tiến bộ In Khổ A4 (PDF)

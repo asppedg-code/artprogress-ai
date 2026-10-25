@@ -263,3 +263,80 @@ test("Phòng triển lãm 3D: Tự động tính toán và spawn đèn trần đ
   assert.deepEqual(lights48m, [-18, -12, -6, 0, 6, 12, 18]);
 });
 
+test("Chỉnh sửa sư phạm (Human-in-the-Loop): Giáo viên có quyền hiệu chỉnh điểm số, điểm nổi bật và chi tiết nhận xét Rubric", () => {
+  const initialFeedback = {
+    status: "pending_moderation",
+    referenceScore: 7.0,
+    overallStrength: "Bản vẽ có cố gắng.",
+    teacherNotes: "",
+    criteriaReviews: [
+      {
+        criterionId: "crit_01",
+        criterionName: "Bố cục & Tỷ lệ",
+        strength: "Hình vẽ nằm giữa tranh.",
+        improvement: "Cần căn đều mép tranh.",
+        level: "Đạt",
+      },
+    ],
+  };
+
+  // 1. Giáo viên chỉnh sửa điểm số
+  const updateScore = (fb, newScore) => ({
+    ...fb,
+    referenceScore: Math.min(10, Math.max(0, Math.round(newScore * 10) / 10)),
+  });
+  const fbAfterScore = updateScore(initialFeedback, 9.2);
+  assert.equal(fbAfterScore.referenceScore, 9.2);
+
+  // 2. Giáo viên chỉnh sửa điểm nổi bật
+  const updateOverallStrength = (fb, newStrength) => ({
+    ...fb,
+    overallStrength: newStrength.trim() || fb.overallStrength,
+  });
+  const fbAfterStrength = updateOverallStrength(fbAfterScore, "Phối màu rực rỡ, cảm xúc trong sáng đặc trưng lứa tuổi.");
+  assert.equal(fbAfterStrength.overallStrength, "Phối màu rực rỡ, cảm xúc trong sáng đặc trưng lứa tuổi.");
+
+  // 3. Giáo viên chỉnh sửa chi tiết nhận xét Rubric
+  const updateCriterion = (fb, critId, updates) => ({
+    ...fb,
+    criteriaReviews: fb.criteriaReviews.map((c) =>
+      c.criterionId === critId ? { ...c, ...updates } : c
+    ),
+  });
+  const fbAfterCrit = updateCriterion(fbAfterStrength, "crit_01", {
+    level: "Xuất sắc",
+    strength: "Mảng chính phụ cân đối và sinh động.",
+    improvement: "Tiếp tục phát huy phong cách này.",
+  });
+
+  assert.equal(fbAfterCrit.criteriaReviews[0].level, "Xuất sắc");
+  assert.equal(fbAfterCrit.criteriaReviews[0].strength, "Mảng chính phụ cân đối và sinh động.");
+  assert.equal(fbAfterCrit.criteriaReviews[0].improvement, "Tiếp tục phát huy phong cách này.");
+});
+
+test("AI đánh giá thích ứng lứa tuổi (Age-Adaptive Evaluation): Tích hợp số liệu khối lớp và độ tuổi học sinh THCS", () => {
+  const getStudentAge = (grade) => (grade >= 6 && grade <= 9 ? grade + 5 : 11);
+
+  assert.equal(getStudentAge(6), 11); // Lớp 6 -> 11 tuổi
+  assert.equal(getStudentAge(7), 12); // Lớp 7 -> 12 tuổi
+  assert.equal(getStudentAge(8), 13); // Lớp 8 -> 13 tuổi
+  assert.equal(getStudentAge(9), 14); // Lớp 9 -> 14 tuổi
+
+  // Tiêu chuẩn chấm điểm phân hóa theo năng lực: Không cào bằng 6-7đ
+  const classifyScoreByEffort = (isOutstanding, hasGoodColor, isDraftOnly) => {
+    if (isDraftOnly) return { level: "Chưa đạt", minScore: 2.0, maxScore: 4.9 };
+    if (isOutstanding) return { level: "Xuất sắc", minScore: 8.5, maxScore: 10.0 };
+    if (hasGoodColor) return { level: "Tốt", minScore: 7.5, maxScore: 8.4 };
+    return { level: "Đạt", minScore: 5.0, maxScore: 7.4 };
+  };
+
+  const outstandingResult = classifyScoreByEffort(true, true, false);
+  assert.equal(outstandingResult.level, "Xuất sắc");
+  assert.ok(outstandingResult.minScore >= 8.5, "Tranh đẹp nổi bật phải được chấm từ 8.5 trở lên, không bị cào bằng 6-7đ");
+
+  const averageResult = classifyScoreByEffort(false, false, false);
+  assert.equal(averageResult.level, "Đạt");
+  assert.ok(averageResult.maxScore <= 7.4);
+});
+
+

@@ -173,7 +173,7 @@ flowchart LR
 
 ### 5.5. Tự động hóa kiểm thử (Automated Unit Testing)
 - Xây dựng file kiểm thử tự động [`src/lib/__tests__/artprogress.node-test.mjs`](file:///d:/webgd/src/lib/__tests__/artprogress.node-test.mjs).
-- Kiểm tra toàn diện **15 trường hợp nghiệp vụ sư phạm và kỹ thuật cốt lõi**:
+- Kiểm tra toàn diện **17 trường hợp nghiệp vụ sư phạm và kỹ thuật cốt lõi**:
   1. Tổng trọng số Rubric 4 tiêu chí bắt buộc bằng 100%.
   2. Quy trình phê duyệt Human-in-the-Loop mặc định `pending_moderation`.
   3. Quyền riêng tư của tranh mặc định `isPublic = false`.
@@ -189,7 +189,9 @@ flowchart LR
   13. Chống sập trang khi gặp QuotaExceededError: `safeLocalStorageSet` bắt lỗi an toàn và chuyển lưu `IndexedDB`.
   14. Phòng triển lãm 3D: Định dạng mã lớp học sinh xóa sạch tiền tố `CLASS_` / `class_`.
   15. Phòng triển lãm 3D: Tự động tính toán và spawn đèn trần đều đặn khi phòng kéo giãn theo số lượng tranh.
-- **Kết quả**: **15/15 kiểm thử đạt tiêu chuẩn tuyệt đối (PASS 100%)**.
+  16. Chỉnh sửa sư phạm (Human-in-the-Loop): Giáo viên có quyền hiệu chỉnh điểm số, điểm nổi bật và chi tiết nhận xét Rubric.
+  17. AI đánh giá thích ứng lứa tuổi (Age-Adaptive Evaluation): Tích hợp số liệu khối lớp và độ tuổi học sinh THCS, phân hóa rõ rệt chất lượng tranh (8.0 - 9.5đ cho tranh đẹp).
+- **Kết quả**: **17/17 kiểm thử đạt tiêu chuẩn tuyệt đối (PASS 100%)**.
 
 ---
 

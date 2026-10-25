@@ -18,6 +18,8 @@ export async function submitArtworkAction(formData: {
   artworkId?: string;
   topicTitle?: string;
   rubric?: RubricCriterion[];
+  grade?: number;
+  className?: string;
 }): Promise<{ success: boolean; artwork?: Artwork; error?: string }> {
   try {
     const DEFAULT_RUBRIC: RubricCriterion[] = [
@@ -30,13 +32,15 @@ export async function submitArtworkAction(formData: {
     const rubricToUse = formData.rubric && formData.rubric.length > 0 ? formData.rubric : (topic?.rubric || DEFAULT_RUBRIC);
     const titleToUse = formData.topicTitle || topic?.title || "Bài thực hành Mĩ thuật";
 
-    // Gọi Gemini Vision phân tích ảnh dựa trên rubric bài học cụ thể
+    // Gọi Gemini Vision phân tích ảnh dựa trên rubric và năng lực lứa tuổi khối lớp
     const draftFeedback = await analyzeArtworkWithGemini(
       formData.imageBase64,
       "image/jpeg",
       rubricToUse,
       titleToUse,
-      formData.title
+      formData.title,
+      formData.grade,
+      formData.className
     );
 
     const now = new Date().toISOString();
