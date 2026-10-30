@@ -24,6 +24,7 @@ import {
   Trash2,
   Check,
   Printer,
+  FileSpreadsheet,
   School,
   LogOut,
   Users,
@@ -36,6 +37,7 @@ import { Artwork, ArtworkFeedback, Topic, Student, RubricCriterion, ClassRoom } 
 import { BeforeAfterViewer } from "@/components/BeforeAfterViewer";
 import { UploadArtworkModal } from "@/components/UploadArtworkModal";
 import { ProgressReportModal } from "@/components/ProgressReportModal";
+import { ExportGradeExcelModal } from "@/components/ExportGradeExcelModal";
 import { LoginPage } from "@/components/LoginPage";
 import { Gallery3DView } from "@/components/Gallery3DView";
 import { BrushStrokeTransition } from "@/components/BrushStrokeTransition";
@@ -159,6 +161,10 @@ export default function DashboardPage() {
 
   // Modal Báo cáo tiến bộ in PDF
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+
+  // Modal Xuất bảng điểm Excel tổng hợp theo chủ đề & lớp
+  const [isExportExcelModalOpen, setIsExportExcelModalOpen] = useState(false);
+  const [exportExcelTopicId, setExportExcelTopicId] = useState<string | undefined>(undefined);
 
   // Modal tạo chủ đề bài học mới kèm Rubric theo Yêu cầu cần đạt
   const [isCreateTopicModalOpen, setIsCreateTopicModalOpen] = useState(false);
@@ -929,12 +935,24 @@ export default function DashboardPage() {
     const equalWeight = Math.floor(100 / reqLines.length);
     const remainder = 100 - equalWeight * reqLines.length;
 
-    const generated: RubricCriterion[] = reqLines.map((req, idx) => ({
-      id: `crit_gen_${Date.now()}_${idx}`,
-      name: req.length > 28 ? req.slice(0, 28) + "..." : req,
-      description: req,
-      weight: idx === 0 ? equalWeight + remainder : equalWeight,
-    }));
+    const generated: RubricCriterion[] = reqLines.map((req, idx) => {
+      const cleaned = req.replace(/^[-*•\d\.\s]+/, "").trim();
+      const colonIndex = cleaned.indexOf(":");
+      let name = cleaned;
+      if (colonIndex > 0 && colonIndex <= 40) {
+        name = cleaned.slice(0, colonIndex).trim();
+      } else if (cleaned.length > 50) {
+        const cut = cleaned.slice(0, 48);
+        const lastSpace = cut.lastIndexOf(" ");
+        name = (lastSpace > 20 ? cut.slice(0, lastSpace) : cut) + "...";
+      }
+      return {
+        id: `crit_gen_${Date.now()}_${idx}`,
+        name: name || cleaned || req,
+        description: cleaned || req,
+        weight: idx === 0 ? equalWeight + remainder : equalWeight,
+      };
+    });
 
     setNewTopicCriteria(generated);
   };
@@ -1465,15 +1483,30 @@ export default function DashboardPage() {
                   )}
 
                   {role === "teacher" && activeNav === "portfolio" && (
-                    <button
-                      type="button"
-                      onClick={() => setIsStudentRosterModalOpen(true)}
-                      className="py-1.5 px-2 rounded-lg bg-[#FAF8F5] border border-[#EAE5DC] text-[#C86446] text-[11px] font-bold shadow-2xs flex items-center gap-1 active:scale-95 cursor-pointer"
-                      title="Quản lý học sinh"
-                    >
-                      <Users className="w-3.5 h-3.5" />
-                      <span>HS ({classStudents.length})</span>
-                    </button>
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => setIsStudentRosterModalOpen(true)}
+                        className="py-1.5 px-2 rounded-lg bg-[#FAF8F5] border border-[#EAE5DC] text-[#C86446] text-[11px] font-bold shadow-2xs flex items-center gap-1 active:scale-95 cursor-pointer"
+                        title="Quản lý học sinh"
+                      >
+                        <Users className="w-3.5 h-3.5" />
+                        <span>HS ({classStudents.length})</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setExportExcelTopicId(topicFilter !== "all" ? topicFilter : (selectedTopic?.id || undefined));
+                          setIsExportExcelModalOpen(true);
+                        }}
+                        className="py-1.5 px-2 rounded-lg bg-[#FAF8F5] border border-[#EAE5DC] text-emerald-800 hover:text-emerald-900 text-[11px] font-bold shadow-2xs flex items-center gap-1 active:scale-95 cursor-pointer"
+                        title="Xuất bảng điểm Excel tổng hợp theo chủ đề của lớp này"
+                      >
+                        <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
+                        <span className="hidden sm:inline">Điểm Excel</span>
+                        <span className="sm:hidden">Excel</span>
+                      </button>
+                    </>
                   )}
 
                   {/* Đổi góc làm việc nhanh giữa Bài vẽ & Chủ đề */}
@@ -1656,20 +1689,37 @@ export default function DashboardPage() {
                               </span>
                             </div>
 
-                            {role !== "guest" && (
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setSelectedTopic(t);
-                                  setTopicFilter(t.id);
-                                  setCurrentNav("portfolio");
-                                }}
-                                className="text-[#C86446] font-semibold hover:underline flex items-center gap-1 cursor-pointer self-start sm:self-auto"
-                              >
-                                <span>Xem hồ sơ bài nộp {selectedClass.name}</span>
-                                <ChevronRight className="w-3.5 h-3.5" />
-                              </button>
-                            )}
+                            <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+                              {role === "teacher" && (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setExportExcelTopicId(t.id);
+                                    setIsExportExcelModalOpen(true);
+                                  }}
+                                  className="px-2.5 py-1 rounded-lg text-[11px] sm:text-xs font-semibold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition-all flex items-center gap-1 cursor-pointer active:scale-95"
+                                  title={`Xuất bảng điểm Excel cho chủ đề "${t.title}" (${selectedClass.name})`}
+                                >
+                                  <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
+                                  <span>Bảng điểm Excel ({selectedClass.name})</span>
+                                </button>
+                              )}
+
+                              {role !== "guest" && (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setSelectedTopic(t);
+                                    setTopicFilter(t.id);
+                                    setCurrentNav("portfolio");
+                                  }}
+                                  className="text-[#C86446] font-semibold hover:underline flex items-center gap-1 cursor-pointer"
+                                >
+                                  <span>Xem hồ sơ bài nộp {selectedClass.name}</span>
+                                  <ChevronRight className="w-3.5 h-3.5" />
+                                </button>
+                              )}
+                            </div>
                           </div>
                         </div>
                       );
@@ -2176,6 +2226,22 @@ export default function DashboardPage() {
                           <span className="hidden sm:inline">Báo cáo (PDF)</span>
                         </button>
 
+                        {/* 4.1. NÚT XUẤT BẢN CHẤM ĐIỂM EXCEL TỔNG HỢP (DÀNH CHO GIÁO VIÊN) */}
+                        {role === "teacher" && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setExportExcelTopicId(selectedArtwork.topicId);
+                              setIsExportExcelModalOpen(true);
+                            }}
+                            className="px-2 sm:px-2.5 py-1.5 rounded-lg text-xs font-medium border border-emerald-200 bg-white hover:bg-emerald-50 text-emerald-800 flex items-center gap-1 shadow-xs cursor-pointer transition-colors shrink-0 active:scale-95"
+                            title={`Xuất bảng điểm Excel tổng hợp cho chủ đề này (${selectedClass.name})`}
+                          >
+                            <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
+                            <span className="hidden sm:inline">Điểm Excel</span>
+                          </button>
+                        )}
+
                         {/* 5. NÚT XÓA TÁC PHẨM (CHO GIÁO VIÊN HOẶC HỌC SINH TÁC GIẢ KHI ĐANG CHỜ DUYỆT) */}
                         {(role === "teacher" ||
                           (role === "student" &&
@@ -2570,14 +2636,14 @@ export default function DashboardPage() {
                                   key={crit.criterionId}
                                   className="p-3 rounded-xl border border-[#EAE5DC] bg-[#FAF8F5]/60 space-y-2 text-xs hover:border-stone-300 transition-colors"
                                 >
-                                  <div className="flex items-center justify-between">
-                                    <span className="font-bold text-stone-800 text-[11px]">
+                                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
+                                    <span className="font-bold text-stone-800 text-[11px] leading-snug">
                                       {crit.criterionName}
                                     </span>
 
                                     {/* Bấm đổi nhanh mức độ biểu hiện */}
                                     {role === "teacher" ? (
-                                      <div className="flex items-center gap-0.5 bg-white p-0.5 rounded-lg border border-[#EAE5DC]">
+                                      <div className="flex items-center gap-0.5 bg-white p-0.5 rounded-lg border border-[#EAE5DC] shrink-0 self-start sm:self-auto">
                                         {(["Chưa đạt", "Đạt", "Tốt", "Xuất sắc"] as const).map((lvl) => {
                                           const isCurrent = crit.level === lvl;
                                           return (
@@ -2603,7 +2669,7 @@ export default function DashboardPage() {
                                       </div>
                                     ) : (
                                       <span
-                                        className={`text-[9px] px-2 py-0.5 rounded-full font-semibold ${crit.level === "Xuất sắc"
+                                        className={`shrink-0 self-start sm:self-auto text-[9px] px-2 py-0.5 rounded-full font-semibold ${crit.level === "Xuất sắc"
                                           ? "bg-purple-100 text-purple-700"
                                           : crit.level === "Tốt"
                                             ? "bg-blue-100 text-blue-700"
@@ -2884,6 +2950,18 @@ export default function DashboardPage() {
             topic={topics.find((t) => t.id === selectedArtwork?.topicId) || selectedTopic || undefined}
             isOpen={isReportModalOpen}
             onClose={() => setIsReportModalOpen(false)}
+          />
+
+          {/* Modal Xuất Bảng Điểm Excel Tổng Hợp Theo Chủ Đề & Lớp */}
+          <ExportGradeExcelModal
+            isOpen={isExportExcelModalOpen}
+            onClose={() => setIsExportExcelModalOpen(false)}
+            topics={topics}
+            classes={classes}
+            students={students}
+            artworks={artworks}
+            initialTopicId={exportExcelTopicId || selectedTopic?.id || topics[0]?.id}
+            initialClassId={selectedClass.id}
           />
 
           {/* Modal Tự Đánh Giá Học Sinh */}

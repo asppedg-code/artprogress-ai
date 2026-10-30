@@ -106,10 +106,10 @@ export function FeedbackCard({
                 key={crit.criterionId}
                 className="p-3.5 rounded-xl border border-stone-200/70 bg-stone-50/30 space-y-2 hover:bg-stone-50/80 transition-colors"
               >
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-stone-800">{crit.criterionName}</span>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-xs font-bold text-stone-800 leading-snug">{crit.criterionName}</span>
                   <span
-                    className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${
+                    className={`shrink-0 text-[10px] px-2 py-0.5 rounded-full font-semibold ${
                       crit.level === "Xuất sắc"
                         ? "bg-purple-100 text-purple-700"
                         : crit.level === "Tốt"

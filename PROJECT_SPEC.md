@@ -4,7 +4,7 @@
 * **Tên dự án**: ArtProgress AI (Mĩ thuật tiến bộ số)
 * **Mục tiêu**: Nền tảng Đánh giá Tiến bộ Sư phạm & Hồ sơ Sáng tạo Mĩ thuật THCS theo Chương trình GDPT 2018 (Phục vụ Ngày hội Giáo viên Sáng tạo 2026).
 * **Nền tảng**: Web Application (Next.js 16.4.3 Static Export trên Firebase Hosting).
-* **Trạng thái**: Hoàn thiện toàn bộ các module cốt lõi, 19/19 test tự động PASS.
+* **Trạng thái**: Hoàn thiện toàn bộ các module cốt lõi, 20/20 test tự động PASS.
 
 ---
 
@@ -25,6 +25,7 @@ d:\webgd\
 │   ├── components\
 │   │   ├── ArtistPaintingAnimation.tsx # Hoạt ảnh Người họa sĩ đang vẽ tranh cho màn hình đăng nhập
 │   │   ├── BeforeAfterViewer.tsx       # Trình đối sánh Trước - Sau (Interactive Slider & Side-by-Side)
+│   │   ├── ExportGradeExcelModal.tsx   # Modal xuất bản chấm điểm Excel/CSV tổng hợp theo chủ đề & lớp
 │   │   ├── FeedbackCard.tsx            # Thẻ hiển thị nhận xét Rubric, lời phê GV và cảnh báo ảnh không hợp lệ
 │   │   ├── Gallery3DView.tsx           # Không gian Triển lãm 3D Three.js (Hệ thống đèn trần động, nhãn lớp sạch)
 │   │   ├── LoginPage.tsx               # Cổng đăng nhập phân quyền 3 vai trò (Thích ứng Desktop/Mobile)
@@ -34,7 +35,8 @@ d:\webgd\
 │   │   └── version.ts                  # Khai báo phiên bản hệ thống tập trung Single Source of Truth (v1.5.0)
 │   ├── lib\
 │   │   ├── __tests__\
-│   │   │   └── artprogress.node-test.mjs # Bộ kiểm thử tự động 19 tiêu chí sư phạm & kỹ thuật (Node test runner)
+│   │   │   └── artprogress.node-test.mjs # Bộ kiểm thử tự động 20 tiêu chí sư phạm & kỹ thuật (Node test runner)
+│   │   ├── excel-export.ts             # Trình sinh & tải bảng điểm Excel (.xls XML Spreadsheet) & CSV UTF-8
 │   │   ├── firebase.ts                 # Cấu hình Firebase SDK, Firestore CRUD, Storage và Graceful Fallback
 │   │   ├── gemini.ts                   # Tích hợp Gemini Vision (Dual-Model: 3.5 Flash-Lite tự động fallback 3.1 Flash-Lite)
 │   │   ├── image-utils.ts              # Nén ảnh Canvas Native client (1600px, 85% JPEG)
@@ -319,7 +321,7 @@ NEXT_PUBLIC_TEACHER_PIN=your_secret_pin_here
   ```bash
   npm run dev
   ```
-* **Chạy bộ kiểm thử tự động 19 tiêu chí**:
+* **Chạy bộ kiểm thử tự động 20 tiêu chí**:
   ```bash
   node --test src/lib/__tests__/artprogress.node-test.mjs
   ```

@@ -92,7 +92,7 @@ flowchart TD
    - Khi bài vẽ đạt chất lượng tốt, Thầy/Cô gạt nút **"Công khai triển lãm"** sang màu xanh. Bức tranh sẽ tự động xuất hiện trên tường danh dự của Phòng Triển Lãm 3D!
 
 #### 5. Xuất bản Báo cáo Minh chứng Tiến bộ In Khổ A4 (PDF)
-1. Tại góc trên bên phải trang chi tiết bài vẽ, bấm nút **"Xuất báo cáo PDF"**.
+1. Tại góc trên bên phải trang chi tiết bài vẽ, bấm nút **"Báo cáo (PDF)"**.
 2. Một bảng tổng kết sư phạm hoàn chỉnh sẽ hiện ra bao gồm:
    - Ảnh so sánh bản vẽ Trước và bản vẽ Sau.
    - Điểm số Rubric chi tiết theo 4 tiêu chí.
@@ -100,6 +100,19 @@ flowchart TD
    - Lời tự đánh giá & cảm nghĩ của Học sinh.
 3. Bấm **"In báo cáo / Lưu PDF (A4)"**:
    - Hệ thống tự động ẩn toàn bộ thanh menu giao diện, căn chỉnh kích thước chuẩn xác theo khổ giấy A4 dọc để Thầy/Cô in ra giấy hoặc lưu thành file PDF làm hồ sơ lưu trữ kiểm tra chuyên môn.
+
+#### 6. Xuất bản Chấm điểm Excel Tổng hợp của từng Chủ đề theo từng Lớp
+1. **Nơi truy cập chức năng**:
+   - Tại thẻ từng chủ đề ở mục **"Chủ đề bài học"**: Bấm nút **"Bảng điểm Excel ([Tên Lớp])"**.
+   - Hoặc tại thanh công cụ trên cùng mục **"Hồ sơ bài vẽ"**: Bấm nút **"Điểm Excel"**.
+   - Hoặc ngay cạnh nút Báo cáo (PDF) tại chi tiết bài vẽ: Bấm nút **"Điểm Excel"**.
+2. **Cửa sổ Xuất Bảng Điểm Tổng Hợp**:
+   - Thầy/Cô có thể linh hoạt chọn **Chủ đề bài học** và **Lớp học** cần xuất.
+   - Hệ thống tự động hiển thị bản xem trước: Sĩ số lớp, số lượng & tỷ lệ học sinh đã nộp bài, điểm trung bình và phân bổ 4 mức xếp loại GDPT 2018 (Xuất sắc, Tốt, Đạt, Chưa đạt).
+3. **Lựa chọn định dạng xuất file**:
+   - **Excel Bảng Tính (.xls)**: Định dạng chuẩn có màu sắc phân loại GDPT 2018, đường viền kẻ bảng chuyên nghiệp, danh sách đầy đủ các tiêu chí Rubric bài học và khối thống kê chân bảng để in ấn/báo cáo tổ chuyên môn.
+   - **Tệp CSV UTF-8 (.csv)**: Có gắn mã UTF-8 BOM, mở trực tiếp trong Microsoft Excel, Google Sheets, vnEdu hay SMAS mà không bao giờ bị lỗi font tiếng Việt.
+4. Bấm **"Tải file"** để lưu file trực tiếp về máy tính.
 
 ---
 

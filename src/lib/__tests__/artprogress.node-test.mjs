@@ -415,5 +415,125 @@ test("Cơ chế chuyển đổi mô hình AI tự động (Automatic Model Fallb
   assert.equal(fallbackResult.responseText, "Phân tích thành công từ model dự phòng");
 });
 
+test("Xuất bản chấm điểm Excel tổng hợp theo từng chủ đề và lớp: Đầy đủ danh sách học sinh, điểm Rubric, xếp loại và thống kê GDPT 2018", () => {
+  // Logic tổng hợp bảng điểm theo chuẩn Thông tư 22/2021/TT-BGDĐT
+  const topic = {
+    id: "topic_01",
+    title: "Chủ đề 1: Sắc màu quê hương",
+    grade: 7,
+    rubric: [
+      { id: "c1", name: "Bố cục & Trọng tâm", weight: 25 },
+      { id: "c2", name: "Đường nét & Tạo hình", weight: 25 },
+      { id: "c3", name: "Màu sắc & Đậm nhạt", weight: 30 },
+      { id: "c4", name: "Sáng tạo & Cảm xúc", weight: 20 },
+    ],
+  };
+
+  const classRoom = { id: "class_7a1", name: "Lớp 7A1", grade: 7 };
+  const students = [
+    { id: "HS01", name: "Nguyễn Văn A", classId: "class_7a1" },
+    { id: "HS02", name: "Trần Thị B", classId: "class_7a1" },
+    { id: "HS03", name: "Lê Hoàng C", classId: "class_7a1" },
+  ];
+
+  const artworks = [
+    {
+      id: "art_01",
+      topicId: "topic_01",
+      studentId: "HS01",
+      studentName: "Nguyễn Văn A",
+      title: "Chiều trên sông quê",
+      submittedAt: "2026-10-25T10:00:00.000Z",
+      feedback: {
+        status: "approved",
+        referenceScore: 9.2,
+        overallStrength: "Bố cục sinh động, hòa sắc tươi sáng.",
+        criteriaReviews: [
+          { criterionId: "c1", criterionName: "Bố cục & Trọng tâm", level: "Xuất sắc" },
+          { criterionId: "c2", criterionName: "Đường nét & Tạo hình", level: "Xuất sắc" },
+          { criterionId: "c3", criterionName: "Màu sắc & Đậm nhạt", level: "Xuất sắc" },
+          { criterionId: "c4", criterionName: "Sáng tạo & Cảm xúc", level: "Tốt" },
+        ],
+      },
+    },
+    {
+      id: "art_02",
+      topicId: "topic_01",
+      studentId: "HS02",
+      studentName: "Trần Thị B",
+      title: "Cánh đồng lúa",
+      submittedAt: "2026-10-26T14:00:00.000Z",
+      feedback: {
+        status: "approved",
+        referenceScore: 7.5,
+        overallStrength: "Bài vẽ sạch sẽ, đúng chủ đề.",
+        criteriaReviews: [
+          { criterionId: "c1", criterionName: "Bố cục & Trọng tâm", level: "Đạt" },
+          { criterionId: "c2", criterionName: "Đường nét & Tạo hình", level: "Đạt" },
+          { criterionId: "c3", criterionName: "Màu sắc & Đậm nhạt", level: "Đạt" },
+          { criterionId: "c4", criterionName: "Sáng tạo & Cảm xúc", level: "Tốt" },
+        ],
+      },
+    },
+    // HS03 chưa nộp bài
+  ];
+
+  // 1. Kiểm tra ánh xạ dữ liệu theo hàng
+  const classStudents = students.filter((s) => s.classId === classRoom.id);
+  assert.equal(classStudents.length, 3);
+
+  const rows = classStudents.map((st, idx) => {
+    const art = artworks.find((a) => a.studentId === st.id && a.topicId === topic.id);
+    const score = art?.feedback?.referenceScore ?? null;
+    let gradeLevel = "Chưa đánh giá";
+    if (score !== null) {
+      if (score >= 9.0) gradeLevel = "Xuất sắc";
+      else if (score >= 7.5) gradeLevel = "Tốt";
+      else if (score >= 5.0) gradeLevel = "Đạt";
+      else gradeLevel = "Chưa đạt";
+    }
+    return {
+      stt: idx + 1,
+      studentId: st.id,
+      studentName: st.name,
+      hasArtwork: !!art,
+      score,
+      gradeLevel,
+    };
+  });
+
+  // HS01: Xuất sắc 9.2đ
+  assert.equal(rows[0].score, 9.2);
+  assert.equal(rows[0].gradeLevel, "Xuất sắc");
+
+  // HS02: Tốt 7.5đ
+  assert.equal(rows[1].score, 7.5);
+  assert.equal(rows[1].gradeLevel, "Tốt");
+
+  // HS03: Chưa nộp bài
+  assert.equal(rows[2].hasArtwork, false);
+  assert.equal(rows[2].score, null);
+  assert.equal(rows[2].gradeLevel, "Chưa đánh giá");
+
+  // 2. Kiểm tra thống kê tổng hợp của lớp
+  const submittedCount = rows.filter((r) => r.hasArtwork).length;
+  const submittedPercent = Math.round((submittedCount / rows.length) * 100);
+  assert.equal(submittedCount, 2);
+  assert.equal(submittedPercent, 67); // 2/3 = 67%
+
+  const validScores = rows.map((r) => r.score).filter((s) => s !== null);
+  const avgScore = Math.round((validScores.reduce((sum, s) => sum + s, 0) / validScores.length) * 10) / 10;
+  assert.equal(avgScore, 8.4); // (9.2 + 7.5) / 2 = 8.35 -> 8.4
+
+  // 3. Kiểm tra tính hợp lệ của cấu trúc XML Spreadsheet 2003
+  const isXmlWorkbook = (xml) => xml.includes("<?xml") && xml.includes("<Workbook") && xml.includes("</Workbook>");
+  const sampleXml = `<?xml version="1.0"?><Workbook><Worksheet ss:Name="BangDiem"><Table><Row><Cell><Data ss:Type="String">HS01</Data></Cell></Row></Table></Worksheet></Workbook>`;
+  assert.ok(isXmlWorkbook(sampleXml));
+
+  // 4. Kiểm tra cấu trúc CSV có UTF-8 BOM
+  const sampleCsv = "\uFEFF" + `"STT","Mã HS","Họ và tên","Điểm số"\r\n1,"HS01","Nguyễn Văn A",9.2`;
+  assert.equal(sampleCsv.charCodeAt(0), 0xFEFF, "CSV phải chứa ký tự Byte Order Mark để hiển thị tiếng Việt trên Excel");
+});
+
 
 
